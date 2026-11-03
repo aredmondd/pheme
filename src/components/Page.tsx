@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import type { Recap } from "../collect.ts";
 import { etDateKey, formatDateKey, formatTimeEt } from "../dates.ts";
+import { FantasySection } from "./FantasySection.tsx";
 import { GameCard } from "./GameCard.tsx";
 import { VideoCard } from "./VideoCard.tsx";
 
@@ -61,6 +62,17 @@ export function Page({ recap, archive }: Props) {
                 </div>
               ))}
             </div>
+          </Section>
+
+          <Section
+            title="Fantasy"
+            subtitle={recap.fantasy.ok ? recap.fantasy.data.leagueName : undefined}
+          >
+            {recap.fantasy.ok ? (
+              <FantasySection f={recap.fantasy.data} />
+            ) : (
+              <Warning>Couldn't load fantasy: {recap.fantasy.error}</Warning>
+            )}
           </Section>
 
           <Section

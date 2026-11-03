@@ -7,7 +7,7 @@ set -euo pipefail
 REMOTE_DIR="${REMOTE_DIR:-nba-catchup}"
 
 rsync -az --delete \
-  --exclude node_modules --exclude out --exclude data --exclude .git \
+  --exclude node_modules --exclude out --exclude data --exclude .git --exclude .env \
   ./ "$THINKPAD:$REMOTE_DIR/"
 
 ssh "$THINKPAD" "cd $REMOTE_DIR && npm ci --no-audit --no-fund"

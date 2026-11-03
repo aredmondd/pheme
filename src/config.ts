@@ -28,3 +28,7 @@ export const NBA_CHANNEL_ID = "UCWJ2lWNubArHWmf3FIHbfcQ";
  * If it's stale, highlights fall back to the NBA long-form feed, then a search link.
  */
 export const NBA_HIGHLIGHTS_PLAYLIST_ID = "PLftRqjkDhxkg"; // 2026-27 season
+
+/** ESPN Fantasy league (must be set to "viewable to public" in league settings). */
+export const ESPN_LEAGUE_ID = "634038353";
+export const MY_FANTASY_TEAM = "Red's Rockets";

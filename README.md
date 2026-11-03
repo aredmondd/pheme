@@ -1,6 +1,6 @@
 # NBA Catchup
 
-Daily NBA recap page — Chaz NBA + Chris PG-1 uploads since the last run, last night's final scores, and highlight links. See [PLAN.md](PLAN.md) for scope and roadmap.
+Daily NBA recap page — Chaz NBA + Chris PG-1 uploads since the last run, ESPN fantasy (matchup, roster, league leaders, standings), last night's final scores with highlight links, and a morning ntfy push. See [PLAN.md](PLAN.md) for scope and roadmap.
 
 ## Develop
 
@@ -31,5 +31,7 @@ Styling: edit the TSX in `src/components/` — Tailwind classes are compiled at 
 THINKPAD=user@thinkpad ./deploy.sh --setup   # first time: timer + tailscale serve
 THINKPAD=user@thinkpad ./deploy.sh           # later code updates
 ```
+
+Before `--setup`, create `.env` on the ThinkPad from `.env.example` (ntfy topic + site URL).
 
 Runs via a systemd timer at 06:00 America/New_York (`Persistent=true` catches up after downtime). Logs: `journalctl -u nba-catchup`. Served privately on the tailnet with `tailscale serve`.

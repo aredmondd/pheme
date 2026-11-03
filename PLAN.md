@@ -19,13 +19,20 @@ A daily NBA recap page: everything I read/watch about last night in one place, r
 - **Failures**: publish a partial page with a warning on the failed section.
 - **Deploy**: develop on Mac in this repo; `deploy.sh` rsyncs to the ThinkPad over Tailscale.
 
+## v1.1 — fantasy + notifications (built)
+
+- **ESPN fantasy** — league `634038353` ("Uncs n Blanco", public, H2H points), team **Red's Rockets**:
+  - current week's matchup score vs opponent (no "days left" — ESPN doesn't expose matchup end dates cleanly)
+  - each of my players' fantasy points last night (bench/IR flagged, "No game" vs "DNP"), top/worst starter
+  - opponent's top 3 starters last night
+  - injury status changes vs the previous day's saved data
+  - league-wide top 5 performers last night (with which fantasy team owns them, or free agent)
+  - other matchups this week + standings
+- **Push notification** — ntfy (iPhone app), sent right after the daily build. Spoiler-free text (counts + fantasy margin); tapping opens `SITE_URL` (needs Tailscale connected on the phone — enable On Demand).
+
+
 ## Future ideas
 
-- **ESPN fantasy (v2)** — public league `634038353`, H2H points, team **Red's Rockets**:
-  - current H2H matchup score vs opponent
-  - each of my players' fantasy points from last night
-  - top / worst performer
-  - maybe: waiver pickups, injuries
+- **Waiver suggestions** — best free agents from last night / trending.
 - **AI overview** — short "what happened last night" (5–8 bullets) generated from box scores by **gpt-oss** via Ollama on another tailnet machine (reachable from the ThinkPad). Must degrade gracefully ("overview unavailable") if the model is offline. Later: optionally summarize video transcripts too.
 - **Spoiler-free mode** — optional version that hides scores / video titles behind tap-to-reveal, for watching highlights first.
-- **Push notification** — optional morning nudge linking to the page.

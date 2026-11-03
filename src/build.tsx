@@ -2,7 +2,8 @@
  * Builds the recap site.
  *
  *   tsx src/build.tsx               preview build: window = since last saved run (or 24h); state untouched
- *   tsx src/build.tsx --save-state  the daily cron run: also records this run as the new window start
+ *   tsx src/build.tsx --save-state  the daily run: also records this run as the new window start
+ *   --notify                        send the ntfy push (needs NTFY_TOPIC + SITE_URL)
  */
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -11,9 +12,11 @@ import { collect } from "./collect.ts";
 import { DATA_DIR, FIRST_RUN_LOOKBACK_HOURS, OUT_DIR } from "./config.ts";
 import { etDateKey } from "./dates.ts";
 import { Page } from "./components/Page.tsx";
+import { sendNotification } from "./notify.ts";
 import { readLastRunAt, writeLastRunAt } from "./state.ts";
 
 const saveState = process.argv.includes("--save-state");
+const notify = process.argv.includes("--notify");
 
 const now = new Date();
 const windowStart =
@@ -49,6 +52,11 @@ console.log(
     recap.games.ok ? recap.games.data.length : "FAILED"
   }`,
 );
+
+if (notify) {
+  // A failed push shouldn't fail the run — the page is already written.
+  await sendNotification(recap).catch((err) => console.error(`Notification failed: ${err.message}`));
+}
 
 async function listArchive(excludeKey: string): Promise<string[]> {
   try {

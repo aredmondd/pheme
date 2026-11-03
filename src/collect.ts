@@ -1,10 +1,16 @@
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
 import {
   CHANNELS,
+  DATA_DIR,
+  ESPN_LEAGUE_ID,
+  MY_FANTASY_TEAM,
   NBA_CHANNEL_ID,
   NBA_HIGHLIGHTS_PLAYLIST_ID,
   type Channel,
 } from "./config.ts";
-import { previousEtDateKey } from "./dates.ts";
+import { etDateKey, previousEtDateKey } from "./dates.ts";
+import { fetchFantasy, type Fantasy } from "./sources/espnFantasy.ts";
 import { findHighlight, type HighlightLink } from "./highlights.ts";
 import { fetchScoreboard, type Game } from "./sources/espn.ts";
 import { fetchLongFormUploads, fetchPlaylistFeed, type Video } from "./sources/youtube.ts";
@@ -15,12 +21,16 @@ export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
 export type GameWithHighlight = Game & { highlight: HighlightLink };
 export type ChannelVideos = { channel: Channel; videos: Section<Video[]> };
 
+export type InjuryChange = { name: string; from: string; to: string };
+export type FantasyRecap = Fantasy & { injuryChanges: InjuryChange[] };
+
 export type Recap = {
   generatedAt: Date;
   windowStart: Date;
   gamesDateKey: string; // ET date of "last night"
   channels: ChannelVideos[];
   games: Section<GameWithHighlight[]>;
+  fantasy: Section<FantasyRecap>;
 };
 
 async function section<T>(fn: () => Promise<T>): Promise<Section<T>> {
@@ -59,11 +69,39 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     return games.map((g) => ({ ...g, highlight: findHighlight(g, gamesDateKey, candidates) }));
   });
 
+  const fantasyP = section(async () => {
+    const fantasy = await fetchFantasy({
+      leagueId: ESPN_LEAGUE_ID,
+      myTeamName: MY_FANTASY_TEAM,
+      gamesDateKey,
+    });
+    return { ...fantasy, injuryChanges: await injuryChanges(fantasy, etDateKey(now)) };
+  });
+
   return {
     generatedAt: now,
     windowStart,
     gamesDateKey,
     channels: await channelsP,
     games: await gamesP,
+    fantasy: await fantasyP,
   };
+}
+
+/** Compare my roster's injury statuses to the most recent earlier saved day. */
+async function injuryChanges(fantasy: Fantasy, todayKey: string): Promise<InjuryChange[]> {
+  let previous: Recap | null = null;
+  try {
+    const dir = join(DATA_DIR, "days");
+    const files = (await readdir(dir)).filter((f) => f.endsWith(".json") && f < `${todayKey}.json`).sort();
+    if (files.length) previous = JSON.parse(await readFile(join(dir, files.at(-1)!), "utf8"));
+  } catch {
+    return [];
+  }
+  if (!previous?.fantasy?.ok) return [];
+  const before = new Map(previous.fantasy.data.myPlayers.map((p) => [p.id, p.injuryStatus]));
+  return fantasy.myPlayers.flatMap((p) => {
+    const from = before.get(p.id);
+    return from && from !== p.injuryStatus ? [{ name: p.name, from, to: p.injuryStatus }] : [];
+  });
 }

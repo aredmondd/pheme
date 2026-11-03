@@ -7,4 +7,5 @@ After=network-online.target
 Type=oneshot
 User=__USER__
 WorkingDirectory=__DIR__
+EnvironmentFile=-__DIR__/.env
 ExecStart=/usr/bin/env npm run daily
