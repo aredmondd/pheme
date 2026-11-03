@@ -27,7 +27,7 @@ export function Page({ recap, archive }: Props) {
             <h1 class="mt-1 text-6xl font-bold tracking-tight font-display text-green">
               {formatDateKey(todayKey, { weekday: "long", month: "long", day: "numeric" })}
             </h1>
-            <p class="mt-1 text-sm text-black opacity-50">
+            <p class="mt-1 text-xs text-black opacity-50">
               Generated {formatTimeEt(recap.generatedAt)}
             </p>
           </header>

@@ -17,14 +17,23 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Redaction35", Georgia, serif;
+  --font-mono: "JetBrains Mono", mono;
 
   --color-silver: #B2A9A5;
   --color-green: #00FF80;
   --color-blue: #5C7AFF;
-  --color-red: #53131E;
+  --color-red: #A31621;
 }
 
 /** a failed bg grid
