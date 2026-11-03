@@ -1,0 +1,9 @@
+[Unit]
+Description=Run NBA Catchup every morning at 6am ET
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 America/New_York
+Persistent=true
+
+[Install]
+WantedBy=timers.target

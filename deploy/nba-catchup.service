@@ -1,0 +1,10 @@
+[Unit]
+Description=Build the NBA Catchup daily recap
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=/usr/bin/env npm run daily
