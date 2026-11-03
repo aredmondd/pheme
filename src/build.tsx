@@ -5,7 +5,7 @@
  *   tsx src/build.tsx --save-state  the daily run: also records this run as the new window start
  *   --notify                        send the ntfy push (needs NTFY_TOPIC + SITE_URL)
  */
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 
 // Load .env if present (systemd also passes it via EnvironmentFile; real env vars win).
 try {
@@ -41,6 +41,10 @@ const archive = await listArchive(todayKey);
 const html = "<!doctype html>" + renderToString(<Page recap={recap} archive={archive} />);
 
 await mkdir(join(OUT_DIR, todayKey), { recursive: true });
+// Static assets (self-hosted fonts, icons…) are served from the site root: public/fonts/x.woff2 → /fonts/x.woff2
+await cp("public", OUT_DIR, { recursive: true, filter: (src) => !src.endsWith(".gitkeep") }).catch((err) => {
+  if (err.code !== "ENOENT") throw err;
+});
 await writeFile(join(OUT_DIR, "index.html"), html);
 await writeFile(join(OUT_DIR, todayKey, "index.html"), html);
 

@@ -3,7 +3,7 @@
  *
  *   npm run dev
  *
- * - renders out/ from the newest data/days/*.json (`build.tsx --cached`), re-rendering on src/ changes
+ * - renders out/ from the newest data/days/*.json (`build.tsx --cached`), re-rendering on src/ or public/ changes
  * - runs Tailwind in watch mode
  * - serves out/ at http://localhost:3000 and reloads the browser when anything in out/ changes
  *
@@ -36,6 +36,10 @@ watch("src", { recursive: true }, (_e, file) => {
   clearTimeout(timer);
   timer = setTimeout(rebuild, 100);
 });
+watch("public", { recursive: true }, () => {
+  clearTimeout(timer);
+  timer = setTimeout(rebuild, 100);
+});
 rebuild();
 
 // --- Tailwind ---
@@ -59,6 +63,10 @@ const TYPES: Record<string, string> = {
   ".json": "application/json",
   ".svg": "image/svg+xml",
   ".png": "image/png",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
 };
 
 createServer(async (req, res) => {
