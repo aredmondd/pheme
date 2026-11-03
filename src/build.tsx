@@ -5,7 +5,7 @@
  *   tsx src/build.tsx --save-state  the daily run: also records this run as the new window start
  *   --notify                        send the ntfy push (needs NTFY_TOPIC + SITE_URL)
  */
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 
 // Load .env if present (systemd also passes it via EnvironmentFile; real env vars win).
 try {
@@ -14,24 +14,29 @@ try {
 
 import { join } from "node:path";
 import { renderToString } from "preact-render-to-string";
-import { collect } from "./collect.ts";
+import { collect, type Recap } from "./collect.ts";
 import { DATA_DIR, FIRST_RUN_LOOKBACK_HOURS, OUT_DIR } from "./config.ts";
 import { etDateKey } from "./dates.ts";
 import { Page } from "./components/Page.tsx";
 import { sendNotification } from "./notify.ts";
 import { readLastRunAt, writeLastRunAt } from "./state.ts";
 
-const saveState = process.argv.includes("--save-state");
-const notify = process.argv.includes("--notify");
+const cached = process.argv.includes("--cached");
+const saveState = process.argv.includes("--save-state") && !cached;
+const notify = process.argv.includes("--notify") && !cached;
 
 const now = new Date();
-const windowStart =
-  (await readLastRunAt()) ?? new Date(now.getTime() - FIRST_RUN_LOOKBACK_HOURS * 3_600_000);
+let recap: Recap;
+if (cached) {
+  recap = await loadLatestRecap();
+} else {
+  const windowStart =
+    (await readLastRunAt()) ?? new Date(now.getTime() - FIRST_RUN_LOOKBACK_HOURS * 3_600_000);
+  console.log(`Collecting videos since ${windowStart.toISOString()}…`);
+  recap = await collect(now, windowStart);
+}
 
-console.log(`Collecting videos since ${windowStart.toISOString()}…`);
-const recap = await collect(now, windowStart);
-
-const todayKey = etDateKey(now);
+const todayKey = cached ? etDateKey(recap.generatedAt) : etDateKey(now);
 const archive = await listArchive(todayKey);
 const html = "<!doctype html>" + renderToString(<Page recap={recap} archive={archive} />);
 
@@ -39,9 +44,11 @@ await mkdir(join(OUT_DIR, todayKey), { recursive: true });
 await writeFile(join(OUT_DIR, "index.html"), html);
 await writeFile(join(OUT_DIR, todayKey, "index.html"), html);
 
-// Keep the raw data per day — useful later for the AI overview / debugging.
-await mkdir(join(DATA_DIR, "days"), { recursive: true });
-await writeFile(join(DATA_DIR, "days", `${todayKey}.json`), JSON.stringify(recap, null, 2));
+// Keep the raw data per day — useful later for the AI overview / debugging / --cached dev builds.
+if (!cached) {
+  await mkdir(join(DATA_DIR, "days"), { recursive: true });
+  await writeFile(join(DATA_DIR, "days", `${todayKey}.json`), JSON.stringify(recap, null, 2));
+}
 
 const videosOk = recap.channels.every((c) => c.videos.ok);
 if (saveState) {
@@ -62,6 +69,21 @@ console.log(
 if (notify) {
   // A failed push shouldn't fail the run — the page is already written.
   await sendNotification(recap).catch((err) => console.error(`Notification failed: ${err.message}`));
+}
+
+/** Newest saved recap from data/days, with ISO date strings revived into Dates. */
+async function loadLatestRecap(): Promise<Recap> {
+  const dir = join(DATA_DIR, "days");
+  const files = (await readdir(dir).catch(() => [] as string[]))
+    .filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))
+    .sort();
+  const latest = files.at(-1);
+  if (!latest) throw new Error(`No cached recap in ${dir} — run \`npm run build\` once first.`);
+  console.log(`Using cached recap ${dir}/${latest} (no API calls)`);
+  const isoDate = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+  return JSON.parse(await readFile(join(dir, latest), "utf8"), (_k, v) =>
+    typeof v === "string" && isoDate.test(v) ? new Date(v) : v,
+  );
 }
 
 async function listArchive(excludeKey: string): Promise<string[]> {

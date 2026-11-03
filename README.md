@@ -6,13 +6,15 @@ Daily NBA recap page — Chaz NBA + Chris PG-1 uploads since the last run, ESPN 
 
 ```sh
 npm install
-npm run dev        # build + serve out/ at http://localhost:3000
+npm run build      # fetch real data once (APIs + LLM), writes out/ and caches data/days/<date>.json
+npm run dev        # styling loop at http://localhost:3000: renders from the cache, live reload, no API calls
+npm run preview    # full build + plain static serve
 npm run typecheck
 ```
 
 `npm run build` is a preview: it uses the saved window (or the last 24h) and never advances it. `npm run daily` is what the timer runs; it records the run time so tomorrow's page picks up from there.
 
-Styling: edit the TSX in `src/components/` — Tailwind classes are compiled at build time.
+Styling: edit the TSX in `src/components/` or `src/styles.css` while `npm run dev` runs — the page re-renders from the cached recap and the browser reloads itself. Re-run `npm run build` when you want fresh data.
 
 ## Layout
 

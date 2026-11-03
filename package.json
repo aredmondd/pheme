@@ -4,7 +4,8 @@
   "scripts": {
     "build": "tsx src/build.tsx && tailwindcss -i src/styles.css -o out/styles.css --minify",
     "typecheck": "tsc",
-    "dev": "npm run build && npx --yes serve out",
+    "dev": "tsx src/dev.ts",
+    "preview": "npm run build && npx --yes serve out",
     "daily": "tailwindcss -i src/styles.css -o out/styles.css --minify && tsx src/build.tsx --save-state --notify"
   },
   "private": true,
