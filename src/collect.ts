@@ -14,7 +14,7 @@ import { fetchFantasy, type Fantasy } from "./sources/espnFantasy.ts";
 import { findHighlight, type HighlightLink } from "./highlights.ts";
 import { fetchScoreboard, type Game } from "./sources/espn.ts";
 import { fetchBoxTopScorers, type PlayerLine } from "./sources/espnBox.ts";
-import { fantasyPrompt, nbaPrompt, summarizeFantasy, summarizeNba } from "./summaries.ts";
+import { fantasyPrompt, nbaPrompt, newsPrompt, summarizeFantasy, summarizeNba, summarizeNews } from "./summaries.ts";
 import { fetchLongFormUploads, fetchPlaylistFeed, type Video } from "./sources/youtube.ts";
 
 /** A page section that either loaded or failed — failures render as a warning, not a crash. */
@@ -33,8 +33,8 @@ export type Recap = {
   channels: ChannelVideos[];
   games: Section<GameWithHighlight[]>;
   fantasy: Section<FantasyRecap>;
-  /** AI summaries; null = nothing to summarize (no games / no fantasy data). */
-  briefing: { nba: Section<string[]> | null; fantasy: Section<string[]> | null };
+  /** AI summaries; null = nothing to summarize (no games / no fantasy data / no news videos). */
+  briefing: { nba: Section<string[]> | null; fantasy: Section<string[]> | null; news?: Section<string[]> | null };
 };
 
 async function section<T>(fn: () => Promise<T>): Promise<Section<T>> {
@@ -85,7 +85,10 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
   const [channels, games, fantasy] = await Promise.all([channelsP, gamesP, fantasyP]);
 
   const finished = games.ok ? games.data.filter((g) => g.completed) : [];
-  const [nbaBriefing, fantasyBriefing] = await Promise.all([
+  const newsVideos = channels
+    .filter((c) => c.channel.news && c.videos.ok)
+    .flatMap((c) => (c.videos.ok ? c.videos.data : []));
+  const [nbaBriefing, fantasyBriefing, newsBriefing] = await Promise.all([
     finished.length
       ? section(async () => {
           // Box scores are best-effort: a missing one just means fewer details for that game.
@@ -102,6 +105,7 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
         })
       : null,
     fantasy.ok ? section(() => summarizeFantasy(fantasyPrompt(fantasy.data))) : null,
+    newsVideos.length ? section(() => summarizeNews(newsPrompt(newsVideos))) : null,
   ]);
 
   return {
@@ -111,7 +115,7 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     channels,
     games,
     fantasy,
-    briefing: { nba: nbaBriefing, fantasy: fantasyBriefing },
+    briefing: { nba: nbaBriefing, fantasy: fantasyBriefing, news: newsBriefing },
   };
 }
 

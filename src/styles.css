@@ -20,4 +20,16 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Redaction35", Georgia, serif;
+
+  --color-silver: #B2A9A5;
+  --color-green: #00FF80;
+  --color-blue: #5C7AFF;
+  --color-red: #53131E;
 }
+
+/** a failed bg grid
+body {
+  background-image: linear-gradient(rgba(0, 0, 0, .02) .1em, transparent .1em), linear-gradient(90deg, rgba(0, 0, 0, .02) .1em, transparent .1em);
+  background-size: 2em 2em;
+}
+*/

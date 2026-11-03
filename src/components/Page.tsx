@@ -21,17 +21,14 @@ export function Page({ recap, archive }: Props) {
         <title>{`NBA Catchup · ${formatDateKey(todayKey, { month: "short", day: "numeric" })}`}</title>
         <link rel="stylesheet" href="/styles.css" />
       </head>
-      <body class="min-h-screen bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
+      <body class="min-h-screen bg-silver font-normal">
         <main class="mx-auto max-w-2xl px-4 pb-16 pt-8">
           <header class="mb-8">
-            <p class="text-xs font-semibold uppercase tracking-widest text-orange-600 dark:text-orange-400">
-              NBA Catchup
-            </p>
-            <h1 class="mt-1 text-3xl font-bold tracking-tight">
+            <h1 class="mt-1 text-6xl font-bold tracking-tight font-display text-green">
               {formatDateKey(todayKey, { weekday: "long", month: "long", day: "numeric" })}
             </h1>
-            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Videos since {formatTimeEt(recap.windowStart)} ET
+            <p class="mt-1 text-sm text-black opacity-50">
+              Generated {formatTimeEt(recap.generatedAt)}
             </p>
           </header>
 

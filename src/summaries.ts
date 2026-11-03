@@ -18,6 +18,14 @@ Write 5–8 bullets, most interesting first: big individual performances, close 
 
 const FANTASY_SYSTEM = `You write a short morning fantasy basketball recap for the manager of the team named in the data. Address them as "you". Use ONLY the data provided: never invent stats, trends, projections, injuries, or advice. Only cite a number exactly as it appears on that player's or team's own line. Only use words like "league-high", "best", "worst", or "top" when the data's ranking directly shows it. Players marked BENCH or IR scored points that did not count toward the matchup. Write 3–5 bullets: first where the matchup stands, then the standout and the dud from their roster, then anything notable from the opponent or the rest of the league (for example a top-5 scorer who is a free agent). One sentence per bullet, plain and conversational, no emoji. Output only the bullets, each starting with "- ".`;
 
+const NEWS_SYSTEM = `You write the "around the league" part of a morning NBA recap, built only from the titles of videos a YouTuber posted in the last day. Titles are hype-y and full of slang and emoji; translate them into plain, neutral sentences. Use ONLY what the titles say: never add stats, scores, causes, outcomes, or context a title doesn't state.
+Order bullets by importance, strictly in these tiers: (1) real news: injuries, trades, signings, suspensions, and team or league announcements such as jersey retirements or awards; (2) ejections, fights, and beef; (3) memorable moments and reactions. Every tier-1 item comes before any tier-2 item. Several titles about the same moment are one bullet. Skip titles that don't say what happened.
+Write 2–5 bullets, fewer when there's little of note. One sentence per bullet, plain and punchy, no emoji, no profanity. Use players' names as given. Output only the bullets, each starting with "- ".`;
+
+export function newsPrompt(videos: { title: string }[]): string {
+  return `Video titles from the last day, newest first:\n\n${videos.map((v) => `- ${v.title}`).join("\n")}`;
+}
+
 export function nbaPrompt(
   gamesDateKey: string,
   games: Game[],
@@ -77,6 +85,7 @@ export function fantasyPrompt(f: Fantasy): string {
 
 export const summarizeNba = (prompt: string) => summarize(NBA_SYSTEM, prompt);
 export const summarizeFantasy = (prompt: string) => summarize(FANTASY_SYSTEM, prompt);
+export const summarizeNews = (prompt: string) => summarize(NEWS_SYSTEM, prompt);
 
 async function summarize(system: string, user: string): Promise<string[]> {
   const raw = await complete(system, user);

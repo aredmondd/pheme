@@ -12,11 +12,13 @@ export type Channel = {
   name: string;
   handle: string;
   channelId: string;
+  /** Feed this channel's video titles into the "Around the league" AI summary. */
+  news?: boolean;
 };
 
 /** Creators whose full uploads (no Shorts) appear on the page. */
 export const CHANNELS: Channel[] = [
-  { name: "Chaz NBA", handle: "@ChazNBA", channelId: "UChgDp_uE5PVqnpdV05xKOOA" },
+  { name: "Chaz NBA", handle: "@ChazNBA", channelId: "UChgDp_uE5PVqnpdV05xKOOA", news: true },
   { name: "Chris PG-1", handle: "@Chrispg1", channelId: "UCXy9KvLa5VyndfpX7zsgeAQ" },
 ];
 
