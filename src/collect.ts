@@ -13,6 +13,8 @@ import { etDateKey, previousEtDateKey } from "./dates.ts";
 import { fetchFantasy, type Fantasy } from "./sources/espnFantasy.ts";
 import { findHighlight, type HighlightLink } from "./highlights.ts";
 import { fetchScoreboard, type Game } from "./sources/espn.ts";
+import { fetchBoxTopScorers, type PlayerLine } from "./sources/espnBox.ts";
+import { fantasyPrompt, nbaPrompt, summarizeFantasy, summarizeNba } from "./summaries.ts";
 import { fetchLongFormUploads, fetchPlaylistFeed, type Video } from "./sources/youtube.ts";
 
 /** A page section that either loaded or failed — failures render as a warning, not a crash. */
@@ -31,6 +33,8 @@ export type Recap = {
   channels: ChannelVideos[];
   games: Section<GameWithHighlight[]>;
   fantasy: Section<FantasyRecap>;
+  /** AI summaries; null = nothing to summarize (no games / no fantasy data). */
+  briefing: { nba: Section<string[]> | null; fantasy: Section<string[]> | null };
 };
 
 async function section<T>(fn: () => Promise<T>): Promise<Section<T>> {
@@ -78,13 +82,36 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     return { ...fantasy, injuryChanges: await injuryChanges(fantasy, etDateKey(now)) };
   });
 
+  const [channels, games, fantasy] = await Promise.all([channelsP, gamesP, fantasyP]);
+
+  const finished = games.ok ? games.data.filter((g) => g.completed) : [];
+  const [nbaBriefing, fantasyBriefing] = await Promise.all([
+    finished.length
+      ? section(async () => {
+          // Box scores are best-effort: a missing one just means fewer details for that game.
+          const boxes = new Map<string, Map<string, PlayerLine[]>>();
+          await Promise.all(
+            finished.map((g) =>
+              fetchBoxTopScorers(g.id).then(
+                (b) => boxes.set(g.id, b),
+                (err) => console.warn(`Box score ${g.id}: ${err.message}`),
+              ),
+            ),
+          );
+          return summarizeNba(nbaPrompt(gamesDateKey, finished, boxes));
+        })
+      : null,
+    fantasy.ok ? section(() => summarizeFantasy(fantasyPrompt(fantasy.data))) : null,
+  ]);
+
   return {
     generatedAt: now,
     windowStart,
     gamesDateKey,
-    channels: await channelsP,
-    games: await gamesP,
-    fantasy: await fantasyP,
+    channels,
+    games,
+    fantasy,
+    briefing: { nba: nbaBriefing, fantasy: fantasyBriefing },
   };
 }
 

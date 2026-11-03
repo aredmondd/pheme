@@ -31,8 +31,17 @@ A daily NBA recap page: everything I read/watch about last night in one place, r
 - **Push notification** — ntfy (iPhone app), sent right after the daily build. Spoiler-free text (counts + fantasy margin); tapping opens `SITE_URL` (needs Tailscale connected on the phone — enable On Demand).
 
 
+## v1.2 — AI briefing (built)
+
+- "Last night in 30 seconds" card at the **top** of the page with two separate summaries:
+  - **NBA** (5–8 bullets) from final scores + each team's top 3 scorers (ESPN box scores, one stat line per player).
+  - **Your fantasy** (3–5 bullets) from the fantasy data (matchup, roster, opponent, league top 5, standings).
+- Model: **Groq free tier**, `openai/gpt-oss-120b` (override with `GROQ_MODEL`). Key in `.env` as `GROQ_API_KEY`.
+- Guardrails: prompts forbid invented stats/storylines; code drops any bullet whose numbers don't come from a data line about someone the bullet names (catches stats misattributed between players).
+- Missing key / Groq down → "Summary unavailable"; rest of the page unaffected. Notification stays spoiler-free.
+
 ## Future ideas
 
 - **Waiver suggestions** — best free agents from last night / trending.
-- **AI overview** — short "what happened last night" (5–8 bullets) generated from box scores by **gpt-oss** via Ollama on another tailnet machine (reachable from the ThinkPad). Must degrade gracefully ("overview unavailable") if the model is offline. Later: optionally summarize video transcripts too.
-- **Spoiler-free mode** — optional version that hides scores / video titles behind tap-to-reveal, for watching highlights first.
+- **Spoiler-free mode** — optional version that hides scores / video titles / the briefing behind tap-to-reveal, for watching highlights first. Notification text becomes a setting then.
+- **Video transcript summaries** — fold Chaz / Chris PG-1 takes into the briefing.

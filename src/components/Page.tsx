@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import type { Recap } from "../collect.ts";
 import { etDateKey, formatDateKey, formatTimeEt } from "../dates.ts";
+import { Briefing } from "./Briefing.tsx";
 import { FantasySection } from "./FantasySection.tsx";
 import { GameCard } from "./GameCard.tsx";
 import { VideoCard } from "./VideoCard.tsx";
@@ -33,6 +34,8 @@ export function Page({ recap, archive }: Props) {
               Videos since {formatTimeEt(recap.windowStart)} ET
             </p>
           </header>
+
+          <Briefing briefing={recap.briefing} />
 
           <Section title="Videos">
             <div class="space-y-6">

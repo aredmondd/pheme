@@ -3,14 +3,14 @@ import { etDateKey, formatDateKey } from "./dates.ts";
 
 /**
  * Push a "your recap is ready" notification via ntfy. Tapping it opens SITE_URL.
- * Env: NTFY_TOPIC (required), SITE_URL (required), NTFY_SERVER (default https://ntfy.sh).
+ * Env: NTFY_TOPIC (required), SITE_URL (optional: no tap-to-open without it), NTFY_SERVER (default https://ntfy.sh).
  * Deliberately spoiler-free: counts only, no NBA scores.
  */
 export async function sendNotification(recap: Recap): Promise<void> {
   const topic = process.env.NTFY_TOPIC;
   const siteUrl = process.env.SITE_URL;
-  if (!topic || !siteUrl) {
-    console.warn("Skipping notification: set NTFY_TOPIC and SITE_URL.");
+  if (!topic) {
+    console.warn("Skipping notification: NTFY_TOPIC not set.");
     return;
   }
 
@@ -22,7 +22,7 @@ export async function sendNotification(recap: Recap): Promise<void> {
       topic,
       title: `NBA Catchup · ${day}`,
       message: summaryLine(recap),
-      click: siteUrl,
+      ...(siteUrl ? { click: siteUrl } : {}),
       tags: ["basketball"],
     }),
   });

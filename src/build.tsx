@@ -6,6 +6,12 @@
  *   --notify                        send the ntfy push (needs NTFY_TOPIC + SITE_URL)
  */
 import { mkdir, readdir, writeFile } from "node:fs/promises";
+
+// Load .env if present (systemd also passes it via EnvironmentFile; real env vars win).
+try {
+  process.loadEnvFile();
+} catch {}
+
 import { join } from "node:path";
 import { renderToString } from "preact-render-to-string";
 import { collect } from "./collect.ts";
