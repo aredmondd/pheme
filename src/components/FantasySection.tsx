@@ -2,8 +2,6 @@ import type { ComponentChildren } from "preact";
 import type { FantasyRecap } from "../collect.ts";
 import type { Matchup, RosterPlayer } from "../sources/espnFantasy.ts";
 
-const card =
-  "rounded-xl bg-white p-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800";
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 export function FantasySection({ f }: { f: FantasyRecap }) {
@@ -13,7 +11,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
   const injured = f.myPlayers.filter((p) => p.injuryStatus !== "ACTIVE");
 
   return (
-    <div class="space-y-4">
+    <div>
       {f.myMatchup && <MyMatchup m={f.myMatchup} meId={f.me.id} week={f.matchupPeriodId} />}
 
       {f.injuryChanges.length > 0 && (
@@ -36,7 +34,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
             {worst && <Callout label="Worst" player={worst} tone="bad" />}
           </div>
         )}
-        <div class={`${card} divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
+        <div class={`divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
           {f.myPlayers.map((p) => (
             <PlayerRow key={p.id} p={p} />
           ))}
@@ -50,7 +48,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
 
       {f.opponentTop.length > 0 && (
         <Sub title="Opponent's best last night">
-          <div class={`${card} divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
+          <div class={`divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
             {f.opponentTop.map((p) => (
               <PlayerRow key={p.id} p={p} />
             ))}
@@ -59,7 +57,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
       )}
 
       <Sub title="League top 5 last night">
-        <ol class={`${card} divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
+        <ol class={`divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
           {f.topPerformers.map((p, i) => {
             const mine = p.fantasyTeam?.id === f.me.id;
             return (
@@ -86,7 +84,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
         <Sub title={`Other matchups · Week ${f.matchupPeriodId}`}>
           <div class="grid gap-2 sm:grid-cols-2">
             {f.otherMatchups.map((m) => (
-              <div key={`${m.away.team.id}-${m.home.team.id}`} class={`${card} space-y-1 text-sm`}>
+              <div key={`${m.away.team.id}-${m.home.team.id}`} class={`space-y-1 text-sm`}>
                 {[m.away, m.home].map((s) => {
                   const leading = s.points > (s === m.away ? m.home.points : m.away.points);
                   return (
@@ -106,7 +104,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
       )}
 
       <Sub title="Standings">
-        <table class={`${card} w-full p-0 text-sm`}>
+        <table class={`w-full p-0 text-sm`}>
           <thead class="text-left text-xs text-zinc-500">
             <tr>
               <th class="px-3 py-2 font-medium">#</th>
@@ -141,20 +139,18 @@ function MyMatchup({ m, meId, week }: { m: Matchup; meId: number; week: number }
   const [me, opp] = m.away.team.id === meId ? [m.away, m.home] : [m.home, m.away];
   const diff = me.points - opp.points;
   return (
-    <div class={`${card} p-4`}>
-      <p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-        Week {week} matchup
-      </p>
+    <div class="mb-4 border-b-4 border-red p-4">
+      <div class="flex items-end justify-between">
+        <p class="inline bg-red px-2 font-mono text-black">WEEK {week}</p>
+        <p class={`px-2 font-mono font-medium text-black ${diff >= 0 ? "bg-green" : "bg-red"}`}>
+          {diff === 0 ? "Tied" : diff > 0 ? `+${fmt(diff)}` : `-${fmt(-diff)}`}
+        </p>
+      </div>
       <div class="mt-2 flex items-center justify-between gap-4">
         <Side name={me.team.name} points={me.points} lead={diff > 0} />
-        <span class="text-xs text-zinc-400">vs</span>
+        <span class="text-xs text-black/20">vs</span>
         <Side name={opp.team.name} points={opp.points} lead={diff < 0} right />
       </div>
-      <p
-        class={`mt-2 text-sm font-medium ${diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
-      >
-        {diff === 0 ? "Tied" : diff > 0 ? `Up ${fmt(diff)}` : `Down ${fmt(-diff)}`}
-      </p>
     </div>
   );
 }
@@ -162,8 +158,10 @@ function MyMatchup({ m, meId, week }: { m: Matchup; meId: number; week: number }
 function Side(props: { name: string; points: number; lead: boolean; right?: boolean }) {
   return (
     <div class={`min-w-0 flex-1 ${props.right ? "text-right" : ""}`}>
-      <p class="truncate text-sm">{props.name}</p>
-      <p class={`text-3xl tabular-nums ${props.lead ? "font-bold" : "text-zinc-400"}`}>
+      <p class="truncate text-sm text-black/50">{props.name}</p>
+      <p
+        class={`font-mono text-3xl text-black tabular-nums ${props.lead ? "font-bold" : "text-black/20"}`}
+      >
         {fmt(props.points)}
       </p>
     </div>

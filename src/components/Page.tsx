@@ -52,7 +52,7 @@ export function Page({ recap, archive }: Props) {
           </div>
 
           <h2 class="bg-red p-2 text-center font-mono text-2xl text-black">FANTASY</h2>
-          <div class="mb-8 border-4 border-red p-4">
+          <div class="mb-8 border-4 border-red">
             {recap.fantasy.ok ? (
               <FantasySection f={recap.fantasy.data} />
             ) : (
@@ -60,7 +60,7 @@ export function Page({ recap, archive }: Props) {
             )}
           </div>
 
-          <h2 class="bg-red p-2 text-center font-mono text-2xl text-black">SCOREBOARD</h2>
+          <h2 class="bg-blue p-2 text-center font-mono text-2xl text-black">SCOREBOARD</h2>
 
           <Section
             title="Final scores"
