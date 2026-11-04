@@ -11,7 +11,11 @@ export function GameCard({ game }: { game: GameWithHighlight }) {
       </div>
       <div class="mt-2 flex items-center justify-between border-t border-blue/33 pt-2 text-xs">
         <span class="font-medium text-silver/75">{game.status}</span>
-        <a target="_blank" href={h.video.url} class="font-semibold text-green hover:underline">
+        <a
+          target="_blank"
+          href={h.kind === "video" ? h.video.url : h.url}
+          class="font-semibold text-green hover:underline"
+        >
           Highlights
         </a>
       </div>
