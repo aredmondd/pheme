@@ -18,13 +18,15 @@ import { OUT_DIR } from "./config.ts";
 
 const PORT = Number(process.env.PORT ?? 3000);
 const bin = (name: string) => join("node_modules", ".bin", name);
+/** `npm run dev -- --fixture=empty|errors` renders a fake day instead of the cached one (see fixtures.ts). */
+const fixtureArg = process.argv.filter((a) => a.startsWith("--fixture="));
 
 // --- HTML rebuilds (debounced, never overlapping) ---
 let building: ChildProcess | null = null;
 let queued = false;
 function rebuild() {
   if (building) return void (queued = true);
-  building = spawn(bin("tsx"), ["src/build.tsx", "--cached"], { stdio: "inherit" });
+  building = spawn(bin("tsx"), ["src/build.tsx", "--cached", ...fixtureArg], { stdio: "inherit" });
   building.on("exit", () => {
     building = null;
     if (queued) (queued = false), rebuild();

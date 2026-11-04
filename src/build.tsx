@@ -18,16 +18,25 @@ import { collect, type Recap } from "./collect.ts";
 import { DATA_DIR, FIRST_RUN_LOOKBACK_HOURS, OUT_DIR } from "./config.ts";
 import { etDateKey } from "./dates.ts";
 import { Page } from "./components/Page.tsx";
+import { FIXTURES, fixtureRecap, type FixtureName } from "./fixtures.ts";
 import { sendNotification } from "./notify.ts";
 import { readLastRunAt, writeLastRunAt } from "./state.ts";
 
-const cached = process.argv.includes("--cached");
+const fixture = process.argv.find((a) => a.startsWith("--fixture="))?.slice("--fixture=".length);
+if (fixture && !(FIXTURES as readonly string[]).includes(fixture)) {
+  throw new Error(`Unknown fixture "${fixture}" — use one of: ${FIXTURES.join(", ")}`);
+}
+// Fixtures behave like --cached: no API calls, no saved data, no state, no push.
+const cached = process.argv.includes("--cached") || !!fixture;
 const saveState = process.argv.includes("--save-state") && !cached;
 const notify = process.argv.includes("--notify") && !cached;
 
 const now = new Date();
 let recap: Recap;
-if (cached) {
+if (fixture) {
+  console.log(`Using fixture "${fixture}" (no API calls)`);
+  recap = fixtureRecap(fixture as FixtureName, now);
+} else if (cached) {
   recap = await loadLatestRecap();
 } else {
   const windowStart =
