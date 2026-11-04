@@ -4,6 +4,7 @@ import { etDateKey, formatDateKey, formatTimeEt } from "../dates.ts";
 import { Briefing } from "./Briefing.tsx";
 import { FantasySection } from "./FantasySection.tsx";
 import { GameCard } from "./GameCard.tsx";
+import { Empty, Warning } from "./Notice.tsx";
 import { VideoCard } from "./VideoCard.tsx";
 
 type Props = { recap: Recap; archive: string[] };
@@ -45,7 +46,7 @@ export function Page({ recap, archive }: Props) {
                   ? videos.data.map((v) => <VideoCard key={v.id} video={v} />)
                   : [
                       <Warning key={channel.name}>
-                        Couldn't load {channel.name}: {videos.error}
+                        {channel.name}: {videos.error}
                       </Warning>,
                     ],
               )}
@@ -56,14 +57,14 @@ export function Page({ recap, archive }: Props) {
             {recap.fantasy.ok ? (
               <FantasySection f={recap.fantasy.data} />
             ) : (
-              <Warning>Couldn't load fantasy: {recap.fantasy.error}</Warning>
+              <Warning>{recap.fantasy.error}</Warning>
             )}
           </div>
 
           <h2 class="bg-blue p-2 text-center font-mono text-2xl text-black">SCOREBOARD</h2>
           <div class="border-4 border-blue p-4">
             {!games.ok ? (
-              <Warning>Couldn't load scores: {games.error}</Warning>
+              <Warning>{games.error}</Warning>
             ) : games.data.length === 0 ? (
               <Empty>No games last night.</Empty>
             ) : (
@@ -102,28 +103,4 @@ export function Page({ recap, archive }: Props) {
       </body>
     </html>
   );
-}
-
-function Section(props: { title: string; subtitle?: string; children: ComponentChildren }) {
-  return (
-    <section class="mb-10">
-      <h2 class="mb-3 flex items-baseline justify-between border-b border-zinc-200 pb-2 dark:border-zinc-800">
-        <span class="text-lg font-bold">{props.title}</span>
-        {props.subtitle && <span class="text-sm text-zinc-500">{props.subtitle}</span>}
-      </h2>
-      {props.children}
-    </section>
-  );
-}
-
-function Warning({ children }: { children: ComponentChildren }) {
-  return (
-    <p class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200">
-      ⚠️ {children}
-    </p>
-  );
-}
-
-function Empty({ children }: { children: ComponentChildren }) {
-  return <p class="text-sm text-zinc-500">{children}</p>;
 }
