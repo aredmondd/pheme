@@ -148,7 +148,7 @@ function MyMatchup({ m, meId, week }: { m: Matchup; meId: number; week: number }
       </div>
       <div class="mt-2 flex items-center justify-between gap-4">
         <Side name={me.team.name} points={me.points} lead={diff > 0} />
-        <span class="text-xs text-black/20">vs</span>
+        <span class="text-sm text-black/20">vs</span>
         <Side name={opp.team.name} points={opp.points} lead={diff < 0} right />
       </div>
     </div>

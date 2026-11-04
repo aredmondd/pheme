@@ -94,6 +94,10 @@ export function Page({ recap, archive }: Props) {
               </ul>
             </footer>
           )}
+
+          <p class="mt-12 text-center font-display text-5xl text-green">
+            designed by aiden redmond
+          </p>
         </main>
       </body>
     </html>
