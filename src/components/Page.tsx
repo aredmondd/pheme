@@ -61,15 +61,7 @@ export function Page({ recap, archive }: Props) {
           </div>
 
           <h2 class="bg-blue p-2 text-center font-mono text-2xl text-black">SCOREBOARD</h2>
-
-          <Section
-            title="Final scores"
-            subtitle={formatDateKey(recap.gamesDateKey, {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-            })}
-          >
+          <div class="border-4 border-blue p-4">
             {!games.ok ? (
               <Warning>Couldn't load scores: {games.error}</Warning>
             ) : games.data.length === 0 ? (
@@ -81,7 +73,7 @@ export function Page({ recap, archive }: Props) {
                 ))}
               </div>
             )}
-          </Section>
+          </div>
 
           {archive.length > 0 && (
             <footer class="mt-12 border-t border-zinc-200 pt-6 dark:border-zinc-800">
