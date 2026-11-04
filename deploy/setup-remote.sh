@@ -11,7 +11,13 @@ if (( node_major < 20 )); then
   exit 1
 fi
 
-# First build so there's something to serve.
+if [[ ! -f .env ]]; then
+  echo "Missing $DIR/.env — create it from .env.example first." >&2
+  exit 1
+fi
+
+# First build so there's something to serve. Load .env like the systemd unit does.
+set -a; source .env; set +a
 npm run daily
 
 sed -e "s#__USER__#$USER_NAME#" -e "s#__DIR__#$DIR#" deploy/nba-catchup.service \
