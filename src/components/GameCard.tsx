@@ -4,38 +4,27 @@ import type { TeamLine } from "../sources/espn.ts";
 export function GameCard({ game }: { game: GameWithHighlight }) {
   const h = game.highlight;
   return (
-    <div class="bg-black p-3">
-      <div class="space-y-1.5">
+    <a target="_blank" href={h.kind === "video" ? h.video.url : h.url} class="bg-black p-3">
+      <div class="flex justify-between">
         <TeamRow team={game.away} decided={game.completed} />
+        <hr class="my-4 h-auto w-px self-stretch border-0 bg-linear-to-b from-transparent via-blue to-transparent opacity-50" />
         <TeamRow team={game.home} decided={game.completed} />
       </div>
-      <div class="mt-2 flex items-center justify-between border-t border-blue/33 pt-2 text-xs">
-        <span class="font-medium text-silver/75">{game.status}</span>
-        <a
-          target="_blank"
-          href={h.kind === "video" ? h.video.url : h.url}
-          class="font-semibold text-green hover:underline"
-        >
-          Highlights
-        </a>
-      </div>
-    </div>
+    </a>
   );
 }
 
 function TeamRow({ team, decided }: { team: TeamLine; decided: boolean }) {
   const muted = decided && !team.winner;
   return (
-    <div class={`flex items-center gap-2 ${muted ? "text-silver/50" : ""}`}>
-      <img src={team.logo} alt="" class="h-6 w-6" loading="lazy" />
-      <span class={`flex-1 truncate text-sm ${team.winner ? "font-semibold" : ""}`}>
-        {team.displayName}
-        {team.record && (
-          <span class="ml-1.5 text-xs font-normal text-silver/50">{team.record}</span>
-        )}
-      </span>
-      <span class={`text-lg tabular-nums ${team.winner ? "font-bold" : ""}`}>
+    <div class={`flex flex-col items-center p-2 ${muted ? "text-silver/50" : ""}`}>
+      <img src={team.logo} alt="" class={`${muted ? "opacity-50" : ""} h-20 w-20`} loading="lazy" />
+      <span class={`mt-2 text-lg tabular-nums ${team.winner ? "font-bold" : ""}`}>
         {team.score ?? "–"}
+      </span>
+
+      <span class={`truncate text-sm ${team.winner ? "font-semibold" : ""}`}>
+        {team.record && <span class="text-xs font-normal text-silver/50">({team.record})</span>}
       </span>
     </div>
   );
