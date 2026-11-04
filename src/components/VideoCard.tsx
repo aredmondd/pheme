@@ -5,16 +5,19 @@ export function VideoCard({ video }: { video: Video }) {
   return (
     <a
       href={video.url}
-      class="group flex gap-3 rounded-xl bg-white p-2 shadow-sm ring-1 ring-zinc-200 transition hover:ring-zinc-300 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:ring-zinc-700"
+      class="group flex border-2 border-black/20 border-dashed gap-3 p-2"
     >
-      <div class="aspect-video w-36 shrink-0 overflow-hidden rounded-lg bg-zinc-200 sm:w-44 dark:bg-zinc-800">
+      <div class="aspect-video w-36 shrink-0 overflow-hidden sm:w-44">
         <img src={video.thumbnail} alt="" loading="lazy" class="h-full w-full object-cover" />
       </div>
-      <div class="min-w-0 py-0.5">
-        <p class="line-clamp-3 text-sm font-medium leading-snug group-hover:underline">
+      <div class="flex flex-col grow justify-between">
+        <p class="text-black/75 line-clamp-3 font-medium leading-snug group-hover:underline">
           {video.title}
         </p>
-        <p class="mt-1 text-xs text-zinc-500">{formatTimeEt(video.published)}</p>
+        <div class="font-mono flex justify-between items-end text-xs text-black/50">
+          <p>{formatTimeEt(video.published)}</p>
+          <p>@{video.channelName}</p>
+        </div>
       </div>
     </a>
   );

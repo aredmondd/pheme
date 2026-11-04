@@ -21,48 +21,33 @@ export function Page({ recap, archive }: Props) {
         <title>{`NBA Catchup · ${formatDateKey(todayKey, { month: "short", day: "numeric" })}`}</title>
         <link rel="stylesheet" href="/styles.css" />
       </head>
-      <body class="min-h-screen bg-silver font-normal">
+      <body class="min-h-screen bg-silver font-normal selection:text-red selection:bg-red/33">
         <main class="mx-auto max-w-2xl px-4 pb-16 pt-8">
           <header class="mb-8">
-            <h1 class="mt-1 text-6xl font-bold tracking-tight font-display text-green">
+            <h1 class="text-6xl font-bold tracking-tight font-display text-green">
               {formatDateKey(todayKey, { weekday: "long", month: "long", day: "numeric" })}
             </h1>
-            <p class="mt-1 text-xs text-black opacity-50">
+            <p class="text-xs text-black opacity-50">
               Generated {formatTimeEt(recap.generatedAt)}
             </p>
           </header>
 
           <Briefing briefing={recap.briefing} />
 
-          <Section title="Videos">
-            <div class="space-y-6">
-              {recap.channels.map(({ channel, videos }) => (
-                <div key={channel.channelId}>
-                  <h3 class="mb-2 flex items-baseline justify-between text-sm font-semibold">
-                    <a href={`https://www.youtube.com/${channel.handle}`} class="hover:underline">
-                      {channel.name}
-                    </a>
-                    {videos.ok && (
-                      <span class="text-xs font-normal text-zinc-500">
-                        {videos.data.length} new
-                      </span>
-                    )}
-                  </h3>
-                  {!videos.ok ? (
-                    <Warning>Couldn't load {channel.name}: {videos.error}</Warning>
-                  ) : videos.data.length === 0 ? (
-                    <Empty>No new videos.</Empty>
-                  ) : (
-                    <div class="space-y-2">
-                      {videos.data.map((v) => (
-                        <VideoCard key={v.id} video={v} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Section>
+          <h2 class="bg-green text-black text-2xl font-mono p-2 text-center">VIDEOS</h2>
+          <div class="mb-8 flex flex-col gap-4 border-4 border-green p-4">
+            {[...recap.channels]
+              .sort((a, b) => Number(b.channel.handle === "@Chrispg1") - Number(a.channel.handle === "@Chrispg1"))
+              .flatMap(({ channel, videos }) =>
+                videos.ok
+                  ? videos.data.map((v) => <VideoCard key={v.id} video={v} />)
+                  : [
+                    <Warning key={channel.name}>
+                      Couldn't load {channel.name}: {videos.error}
+                    </Warning>,
+                  ]
+              )}
+          </div>
 
           <Section
             title="Fantasy"

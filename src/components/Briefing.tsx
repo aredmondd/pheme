@@ -4,7 +4,7 @@ export function Briefing({ briefing }: { briefing: Recap["briefing"] }) {
   if (!briefing.nba && !briefing.fantasy && !briefing.news) return null;
   return (
     <>
-      <h2 class="bg-blue p-1 text-center font-mono text-2xl text-black">AI SUMMARY</h2>
+      <h2 class="bg-blue p-2 text-center font-mono text-2xl text-black">AI SUMMARY</h2>
       <section class="mb-10 p-4 border-4 border-blue">
         <div class="flex flex-col gap-8">
           {briefing.nba && <Group title="HIGHLIGHTS" summary={briefing.nba} />}
@@ -18,7 +18,7 @@ export function Briefing({ briefing }: { briefing: Recap["briefing"] }) {
 
 function Group({ title, summary }: { title: string; summary: Section<string[]> }) {
   return (
-    <div class="grid md:grid-cols-5 items-start gap-4">
+    <div class="grid md:grid-cols-5 gap-4 items-start">
       {summary.ok ? (
         <>
           <h3 class="bg-blue font-mono text-center text-black/75 px-1">{title}</h3>
@@ -31,7 +31,7 @@ function Group({ title, summary }: { title: string; summary: Section<string[]> }
           </ul>
         </>
       ) : (
-        <p class="text-sm text-red">Summary unavailable ({summary.error}).</p>
+        <p class="font-mono text-red bg-red/33 px-1">Summary unavailable ({summary.error}).</p>
       )}
     </div>
   );
