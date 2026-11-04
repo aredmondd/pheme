@@ -21,7 +21,7 @@ Styling: edit the TSX in `src/components/` or `src/styles.css` while `npm run de
 | Path              | What                                                                   |
 | ----------------- | ---------------------------------------------------------------------- |
 | `src/config.ts`   | Channels, NBA highlight playlist ID (**update each season**), timezone |
-| `src/sources/`    | YouTube RSS (`UULF…` long-form feeds = no Shorts) and ESPN scoreboard  |
+| `src/sources/`    | YouTube Data API (`UULF…` long-form playlists = no Shorts) and ESPN    |
 | `src/collect.ts`  | Gathers everything; each section succeeds or fails on its own          |
 | `src/components/` | Page markup (Preact TSX → static HTML)                                 |
 | `out/`            | Generated site: `index.html` = today, `YYYY-MM-DD/` = archive          |
@@ -34,6 +34,6 @@ THINKPAD=user@thinkpad ./deploy.sh --setup   # first time: timer + tailscale ser
 THINKPAD=user@thinkpad ./deploy.sh           # later code updates
 ```
 
-Before `--setup`, create `.env` on the ThinkPad from `.env.example` (ntfy topic + site URL).
+Before `--setup`, create `.env` on the ThinkPad from `.env.example` (ntfy topic, site URL, Groq + YouTube API keys).
 
 Runs via a systemd timer at 06:00 America/New_York (`Persistent=true` catches up after downtime). Logs: `journalctl -u nba-catchup`. Served privately on the tailnet with `tailscale serve`.
