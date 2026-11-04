@@ -15,11 +15,11 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
       {f.myMatchup && <MyMatchup m={f.myMatchup} meId={f.me.id} week={f.matchupPeriodId} />}
 
       {f.injuryChanges.length > 0 && (
-        <div class="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-800/60 dark:bg-red-950/40 dark:text-red-200">
-          <p class="font-semibold">Injury updates</p>
+        <div class="border-b-4 border-red p-4">
+          <p class="inline bg-red px-2 font-mono text-black uppercase">Injury updates</p>
           <ul class="mt-1 space-y-0.5">
             {f.injuryChanges.map((c) => (
-              <li key={c.name}>
+              <li key={c.name} class="text-black/75">
                 {c.name}: {status(c.from)} → <span class="font-semibold">{status(c.to)}</span>
               </li>
             ))}
@@ -27,9 +27,9 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
         </div>
       )}
 
-      <Sub title="Your players last night">
+      <div class="border-b-4 border-red p-4">
         {(best || worst) && (
-          <div class="mb-2 grid grid-cols-2 gap-2 text-xs">
+          <div class="mb-2 flex flex-col gap-2 text-xs">
             {best && <Callout label="Top" player={best} tone="good" />}
             {worst && <Callout label="Worst" player={worst} tone="bad" />}
           </div>
@@ -44,7 +44,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
             Not active: {injured.map((p) => `${p.name} (${status(p.injuryStatus)})`).join(", ")}
           </p>
         )}
-      </Sub>
+      </div>
 
       {f.opponentTop.length > 0 && (
         <Sub title="Opponent's best last night">
@@ -139,7 +139,7 @@ function MyMatchup({ m, meId, week }: { m: Matchup; meId: number; week: number }
   const [me, opp] = m.away.team.id === meId ? [m.away, m.home] : [m.home, m.away];
   const diff = me.points - opp.points;
   return (
-    <div class="mb-4 border-b-4 border-red p-4">
+    <div class="border-b-4 border-red p-4">
       <div class="flex items-end justify-between">
         <p class="inline bg-red px-2 font-mono text-black">WEEK {week}</p>
         <p class={`px-2 font-mono font-medium text-black ${diff >= 0 ? "bg-green" : "bg-red"}`}>
