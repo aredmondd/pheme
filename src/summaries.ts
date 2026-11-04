@@ -31,7 +31,12 @@ export function nbaPrompt(
   games: Game[],
   boxes: Map<string, Map<string, PlayerLine[]>>,
 ): string {
-  const day = formatDateKey(gamesDateKey, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const day = formatDateKey(gamesDateKey, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
   const player = (p: PlayerLine) =>
     `${p.name} ${p.points} PTS, ${p.rebounds} REB, ${p.assists} AST${p.threes ? `, ${p.threes} 3PM` : ""}`;
   const lines = games
@@ -40,7 +45,9 @@ export function nbaPrompt(
       const margin = Math.abs(g.away.score! - g.home.score!);
       const box = boxes.get(g.id);
       const team = (t: Game["away"]) =>
-        box?.get(t.abbreviation)?.length ? `\n  ${t.displayName}: ${box.get(t.abbreviation)!.map(player).join("; ")}` : "";
+        box?.get(t.abbreviation)?.length
+          ? `\n  ${t.displayName}: ${box.get(t.abbreviation)!.map(player).join("; ")}`
+          : "";
       return `${g.away.displayName} ${g.away.score} at ${g.home.displayName} ${g.home.score} (${g.status}, margin ${margin})${team(g.away)}${team(g.home)}`;
     });
   return `NBA games on ${day}. Each game: final score, then each team's top scorers.\n\n${lines.join("\n\n")}`;
@@ -56,30 +63,43 @@ export function fantasyPrompt(f: Fantasy): string {
     ];
     return `- ${p.name} (${p.proTeam}): ${pts}${notes.length ? ` [${notes.join(", ")}]` : ""}`;
   };
-  const out = [`My team: ${f.me.name} (${rec(f.me)}). League: ${f.leagueName}, H2H points, ${f.standings.length} teams.`];
+  const out = [
+    `My team: ${f.me.name} (${rec(f.me)}). League: ${f.leagueName}, H2H points, ${f.standings.length} teams.`,
+  ];
   if (f.myMatchup) {
-    const [mine, opp] = f.myMatchup.away.team.id === f.me.id ? [f.myMatchup.away, f.myMatchup.home] : [f.myMatchup.home, f.myMatchup.away];
+    const [mine, opp] =
+      f.myMatchup.away.team.id === f.me.id
+        ? [f.myMatchup.away, f.myMatchup.home]
+        : [f.myMatchup.home, f.myMatchup.away];
     const diff = mine.points - opp.points;
     out.push(
       `Week ${f.matchupPeriodId} matchup so far: ${f.me.name} ${mine.points} vs ${opp.team.name} ${opp.points} (${diff >= 0 ? `leading by ${diff}` : `trailing by ${-diff}`}).`,
     );
   }
   out.push("", "My players last night:", ...f.myPlayers.map(pl));
-  if (f.opponentTop.length) out.push("", "Opponent's top starters last night:", ...f.opponentTop.map(pl));
+  if (f.opponentTop.length)
+    out.push("", "Opponent's top starters last night:", ...f.opponentTop.map(pl));
   out.push(
     "",
     "League-wide top 5 fantasy scorers last night (ranked, #1 = highest):",
     ...f.topPerformers.map(
-      (p, i) => `#${i + 1} ${p.name} (${p.proTeam}): ${p.points} fpts, rostered by ${p.fantasyTeam?.name ?? "nobody (free agent)"}`,
+      (p, i) =>
+        `#${i + 1} ${p.name} (${p.proTeam}): ${p.points} fpts, rostered by ${p.fantasyTeam?.name ?? "nobody (free agent)"}`,
     ),
   );
   if (f.otherMatchups.length)
     out.push(
       "",
       `Other Week ${f.matchupPeriodId} matchups:`,
-      ...f.otherMatchups.map((m) => `- ${m.away.team.name} ${m.away.points} vs ${m.home.team.name} ${m.home.points}`),
+      ...f.otherMatchups.map(
+        (m) => `- ${m.away.team.name} ${m.away.points} vs ${m.home.team.name} ${m.home.points}`,
+      ),
     );
-  out.push("", "Standings:", ...f.standings.map((t, i) => `${i + 1}. ${t.name} ${rec(t)}, ${t.pointsFor} PF`));
+  out.push(
+    "",
+    "Standings:",
+    ...f.standings.map((t, i) => `${i + 1}. ${t.name} ${rec(t)}, ${t.pointsFor} PF`),
+  );
   return out.join("\n");
 }
 
@@ -92,7 +112,9 @@ async function summarize(system: string, user: string): Promise<string[]> {
   const bullets = parseBullets(raw);
   const kept = bullets.filter((b) => numbersAreGrounded(b, user));
   if (kept.length < bullets.length)
-    console.warn(`Dropped ${bullets.length - kept.length} summary bullet(s) with numbers not in the data.`);
+    console.warn(
+      `Dropped ${bullets.length - kept.length} summary bullet(s) with numbers not in the data.`,
+    );
   if (kept.length === 0) throw new Error("Summary had no usable bullets");
   return kept;
 }
@@ -104,7 +126,19 @@ export function parseBullets(text: string): string[] {
     .filter((l) => l.length > 0);
 }
 
-const NOT_SUBJECTS = new Set(["League-wide", "PTS", "REB", "AST", "3PM", "BENCH", "IR", "NBA", "Final", "Each", "My"]);
+const NOT_SUBJECTS = new Set([
+  "League-wide",
+  "PTS",
+  "REB",
+  "AST",
+  "3PM",
+  "BENCH",
+  "IR",
+  "NBA",
+  "Final",
+  "Each",
+  "My",
+]);
 
 /**
  * Every number in the bullet must come from a fact in the input that is about
@@ -129,7 +163,10 @@ export function numbersAreGrounded(bullet: string, input: string): boolean {
   }));
 
   return nums.every((n) =>
-    facts.some((f) => f.nums.has(n) && f.subjects.some((s) => new RegExp(`\\b${escape(s)}\\b`, "u").test(bLower))),
+    facts.some(
+      (f) =>
+        f.nums.has(n) && f.subjects.some((s) => new RegExp(`\\b${escape(s)}\\b`, "u").test(bLower)),
+    ),
   );
 }
 

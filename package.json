@@ -6,7 +6,9 @@
     "typecheck": "tsc",
     "dev": "tsx src/dev.ts",
     "preview": "npm run build && npx --yes serve out",
-    "daily": "tailwindcss -i src/styles.css -o out/styles.css --minify && tsx src/build.tsx --save-state --notify"
+    "daily": "tailwindcss -i src/styles.css -o out/styles.css --minify && tsx src/build.tsx --save-state --notify",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "private": true,
   "dependencies": {
@@ -17,6 +19,8 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.4",
     "@types/node": "^26.6.6",
+    "prettier": "3.9.10",
+    "prettier-plugin-tailwindcss": "0.8.1",
     "tailwindcss": "^4.3.4",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"

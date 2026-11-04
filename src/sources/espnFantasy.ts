@@ -98,7 +98,8 @@ export async function fetchFantasy(opts: {
     }
     proGamePeriods.set(t.id, periods);
   }
-  if (scoringPeriodId === null) throw new Error(`No fantasy scoring period for ${opts.gamesDateKey}`);
+  if (scoringPeriodId === null)
+    throw new Error(`No fantasy scoring period for ${opts.gamesDateKey}`);
   const sp = scoringPeriodId;
 
   // 2. League: teams, rosters (as of last night), matchups.
@@ -144,7 +145,8 @@ export async function fetchFantasy(opts: {
           headshot: headshot(p.id),
           points: pts,
           hadGame: pts !== null || (proGamePeriods.get(p.proTeamId)?.has(sp) ?? false),
-          slot: e.lineupSlotId === BENCH_SLOT ? "bench" : e.lineupSlotId === IR_SLOT ? "ir" : "starter",
+          slot:
+            e.lineupSlotId === BENCH_SLOT ? "bench" : e.lineupSlotId === IR_SLOT ? "ir" : "starter",
           injuryStatus: p.injuryStatus ?? "ACTIVE",
         };
       })
@@ -199,7 +201,11 @@ export async function fetchFantasy(opts: {
     me,
     myMatchup,
     myPlayers: rosterOf(me.id),
-    opponentTop: opponentId ? rosterOf(opponentId).filter((p) => p.slot === "starter").slice(0, 3) : [],
+    opponentTop: opponentId
+      ? rosterOf(opponentId)
+          .filter((p) => p.slot === "starter")
+          .slice(0, 3)
+      : [],
     otherMatchups: matchups.filter((m) => m !== myMatchup),
     topPerformers,
     standings,

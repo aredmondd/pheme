@@ -29,7 +29,7 @@ function rebuild() {
   building = spawn(bin("tsx"), ["src/build.tsx", "--cached", ...fixtureArg], { stdio: "inherit" });
   building.on("exit", () => {
     building = null;
-    if (queued) (queued = false), rebuild();
+    if (queued) ((queued = false), rebuild());
   });
 }
 let timer: NodeJS.Timeout | undefined;
@@ -45,9 +45,13 @@ watch("public", { recursive: true }, () => {
 rebuild();
 
 // --- Tailwind ---
-const tailwind = spawn(bin("tailwindcss"), ["-i", "src/styles.css", "-o", join(OUT_DIR, "styles.css"), "--watch"], {
-  stdio: "inherit",
-});
+const tailwind = spawn(
+  bin("tailwindcss"),
+  ["-i", "src/styles.css", "-o", join(OUT_DIR, "styles.css"), "--watch"],
+  {
+    stdio: "inherit",
+  },
+);
 
 // --- Static server + live reload (Server-Sent Events) ---
 const clients = new Set<ServerResponse>();
@@ -79,18 +83,24 @@ createServer(async (req, res) => {
     req.on("close", () => clients.delete(res));
     return;
   }
-  let path = join(OUT_DIR, normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, ""));
+  let path = join(
+    OUT_DIR,
+    normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, ""),
+  );
   try {
     if ((await stat(path)).isDirectory()) path = join(path, "index.html");
     let body: Buffer | string = await readFile(path);
     const type = TYPES[extname(path)] ?? "application/octet-stream";
-    if (type.startsWith("text/html")) body = body.toString().replace("</body>", `${RELOAD_SNIPPET}</body>`);
+    if (type.startsWith("text/html"))
+      body = body.toString().replace("</body>", `${RELOAD_SNIPPET}</body>`);
     res.writeHead(200, { "content-type": type, "cache-control": "no-store" });
     res.end(body);
   } catch {
     res.writeHead(404).end("Not found");
   }
-}).listen(PORT, () => console.log(`\n  Dev server: http://localhost:${PORT}  (cached data, live reload)\n`));
+}).listen(PORT, () =>
+  console.log(`\n  Dev server: http://localhost:${PORT}  (cached data, live reload)\n`),
+);
 
 process.on("SIGINT", () => {
   tailwind.kill();

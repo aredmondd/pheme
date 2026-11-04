@@ -14,7 +14,11 @@ export async function sendNotification(recap: Recap): Promise<void> {
     return;
   }
 
-  const day = formatDateKey(etDateKey(recap.generatedAt), { weekday: "short", month: "short", day: "numeric" });
+  const day = formatDateKey(etDateKey(recap.generatedAt), {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
   const res = await fetch(process.env.NTFY_SERVER ?? "https://ntfy.sh", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -38,14 +42,19 @@ function summaryLine(recap: Recap): string {
     parts.push(n === 0 ? "No games last night" : `${n} game${n === 1 ? "" : "s"}`);
   }
 
-  const videos = recap.channels.reduce((sum, c) => sum + (c.videos.ok ? c.videos.data.length : 0), 0);
+  const videos = recap.channels.reduce(
+    (sum, c) => sum + (c.videos.ok ? c.videos.data.length : 0),
+    0,
+  );
   parts.push(`${videos} new video${videos === 1 ? "" : "s"}`);
 
   if (recap.fantasy.ok && recap.fantasy.data.myMatchup) {
     const { myMatchup: m, me } = recap.fantasy.data;
     const [mine, theirs] = m.away.team.id === me.id ? [m.away, m.home] : [m.home, m.away];
     const diff = Math.round(mine.points - theirs.points);
-    parts.push(diff === 0 ? "fantasy tied" : diff > 0 ? `fantasy up ${diff}` : `fantasy down ${-diff}`);
+    parts.push(
+      diff === 0 ? "fantasy tied" : diff > 0 ? `fantasy up ${diff}` : `fantasy down ${-diff}`,
+    );
   }
 
   const failed = [

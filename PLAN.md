@@ -30,7 +30,6 @@ A daily NBA recap page: everything I read/watch about last night in one place, r
   - other matchups this week + standings
 - **Push notification** — ntfy (iPhone app), sent right after the daily build. Spoiler-free text (counts + fantasy margin); tapping opens `SITE_URL` (needs Tailscale connected on the phone — enable On Demand).
 
-
 ## v1.2 — AI briefing (built)
 
 - "Last night in 30 seconds" card at the **top** of the page with two separate summaries:

@@ -7,7 +7,10 @@ export type PlayerLine = {
 };
 
 /** Top `n` scorers per team (keyed by team abbreviation) from ESPN's game summary. */
-export async function fetchBoxTopScorers(gameId: string, n = 3): Promise<Map<string, PlayerLine[]>> {
+export async function fetchBoxTopScorers(
+  gameId: string,
+  n = 3,
+): Promise<Map<string, PlayerLine[]>> {
   const res = await fetch(
     `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=${gameId}`,
   );

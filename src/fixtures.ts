@@ -35,6 +35,10 @@ export function fixtureRecap(name: FixtureName, now: Date): Recap {
     channels: CHANNELS.map((channel) => ({ channel, videos: fail(`${channel.name} feed`) })),
     games: fail("Scoreboard"),
     fantasy: fail("ESPN fantasy"),
-    briefing: { nba: fail("NBA summary"), fantasy: fail("Fantasy summary"), news: fail("News summary") },
+    briefing: {
+      nba: fail("NBA summary"),
+      fantasy: fail("Fantasy summary"),
+      news: fail("News summary"),
+    },
   };
 }

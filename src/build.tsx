@@ -51,9 +51,11 @@ const html = "<!doctype html>" + renderToString(<Page recap={recap} archive={arc
 
 await mkdir(join(OUT_DIR, todayKey), { recursive: true });
 // Static assets (self-hosted fonts, icons…) are served from the site root: public/fonts/x.woff2 → /fonts/x.woff2
-await cp("public", OUT_DIR, { recursive: true, filter: (src) => !src.endsWith(".gitkeep") }).catch((err) => {
-  if (err.code !== "ENOENT") throw err;
-});
+await cp("public", OUT_DIR, { recursive: true, filter: (src) => !src.endsWith(".gitkeep") }).catch(
+  (err) => {
+    if (err.code !== "ENOENT") throw err;
+  },
+);
 await writeFile(join(OUT_DIR, "index.html"), html);
 await writeFile(join(OUT_DIR, todayKey, "index.html"), html);
 
@@ -81,7 +83,9 @@ console.log(
 
 if (notify) {
   // A failed push shouldn't fail the run — the page is already written.
-  await sendNotification(recap).catch((err) => console.error(`Notification failed: ${err.message}`));
+  await sendNotification(recap).catch((err) =>
+    console.error(`Notification failed: ${err.message}`),
+  );
 }
 
 /** Newest saved recap from data/days, with ISO date strings revived into Dates. */

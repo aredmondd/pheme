@@ -30,10 +30,10 @@
   --font-display: "Redaction35", Georgia, serif;
   --font-mono: "JetBrains Mono", mono;
 
-  --color-silver: #B2A9A5;
-  --color-green: #00FF80;
-  --color-blue: #5C7AFF;
-  --color-red: #A31621;
+  --color-silver: #b2a9a5;
+  --color-green: #00ff80;
+  --color-blue: #5c7aff;
+  --color-red: #a31621;
 }
 
 /** a failed bg grid

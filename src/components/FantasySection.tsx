@@ -2,7 +2,8 @@ import type { ComponentChildren } from "preact";
 import type { FantasyRecap } from "../collect.ts";
 import type { Matchup, RosterPlayer } from "../sources/espnFantasy.ts";
 
-const card = "rounded-xl bg-white p-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800";
+const card =
+  "rounded-xl bg-white p-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800";
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 export function FantasySection({ f }: { f: FantasyRecap }) {
@@ -62,7 +63,10 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
           {f.topPerformers.map((p, i) => {
             const mine = p.fantasyTeam?.id === f.me.id;
             return (
-              <li key={p.id} class={`flex items-center gap-3 px-3 py-2 ${mine ? "bg-orange-50 dark:bg-orange-950/30" : ""}`}>
+              <li
+                key={p.id}
+                class={`flex items-center gap-3 px-3 py-2 ${mine ? "bg-orange-50 dark:bg-orange-950/30" : ""}`}
+              >
                 <span class="w-4 text-center text-xs font-bold text-zinc-400">{i + 1}</span>
                 <Headshot src={p.headshot} />
                 <div class="min-w-0 flex-1">
@@ -86,7 +90,10 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
                 {[m.away, m.home].map((s) => {
                   const leading = s.points > (s === m.away ? m.home.points : m.away.points);
                   return (
-                    <div key={s.team.id} class={`flex justify-between ${leading ? "font-semibold" : "text-zinc-500"}`}>
+                    <div
+                      key={s.team.id}
+                      class={`flex justify-between ${leading ? "font-semibold" : "text-zinc-500"}`}
+                    >
                       <span class="truncate">{s.team.name}</span>
                       <span class="tabular-nums">{fmt(s.points)}</span>
                     </div>
@@ -110,7 +117,10 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
           </thead>
           <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
             {f.standings.map((t, i) => (
-              <tr key={t.id} class={t.id === f.me.id ? "bg-orange-50 font-semibold dark:bg-orange-950/30" : ""}>
+              <tr
+                key={t.id}
+                class={t.id === f.me.id ? "bg-orange-50 font-semibold dark:bg-orange-950/30" : ""}
+              >
                 <td class="px-3 py-2 text-zinc-400">{i + 1}</td>
                 <td class="max-w-0 truncate py-2">{t.name}</td>
                 <td class="py-2 text-right tabular-nums">
@@ -132,13 +142,17 @@ function MyMatchup({ m, meId, week }: { m: Matchup; meId: number; week: number }
   const diff = me.points - opp.points;
   return (
     <div class={`${card} p-4`}>
-      <p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">Week {week} matchup</p>
+      <p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+        Week {week} matchup
+      </p>
       <div class="mt-2 flex items-center justify-between gap-4">
         <Side name={me.team.name} points={me.points} lead={diff > 0} />
         <span class="text-xs text-zinc-400">vs</span>
         <Side name={opp.team.name} points={opp.points} lead={diff < 0} right />
       </div>
-      <p class={`mt-2 text-sm font-medium ${diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+      <p
+        class={`mt-2 text-sm font-medium ${diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
+      >
         {diff === 0 ? "Tied" : diff > 0 ? `Up ${fmt(diff)}` : `Down ${fmt(-diff)}`}
       </p>
     </div>
@@ -149,7 +163,9 @@ function Side(props: { name: string; points: number; lead: boolean; right?: bool
   return (
     <div class={`min-w-0 flex-1 ${props.right ? "text-right" : ""}`}>
       <p class="truncate text-sm">{props.name}</p>
-      <p class={`text-3xl tabular-nums ${props.lead ? "font-bold" : "text-zinc-400"}`}>{fmt(props.points)}</p>
+      <p class={`text-3xl tabular-nums ${props.lead ? "font-bold" : "text-zinc-400"}`}>
+        {fmt(props.points)}
+      </p>
     </div>
   );
 }
@@ -175,7 +191,13 @@ function PlayerRow({ p }: { p: RosterPlayer }) {
         </p>
       </div>
       <span class="text-sm font-semibold tabular-nums">
-        {p.points !== null ? fmt(p.points) : p.hadGame ? "DNP" : <span class="text-xs font-normal text-zinc-400">No game</span>}
+        {p.points !== null ? (
+          fmt(p.points)
+        ) : p.hadGame ? (
+          "DNP"
+        ) : (
+          <span class="text-xs font-normal text-zinc-400">No game</span>
+        )}
       </span>
     </div>
   );
@@ -188,7 +210,7 @@ function Callout(props: { label: string; player: RosterPlayer; tone: "good" | "b
       : "bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-800";
   return (
     <div class={`rounded-lg px-3 py-2 ring-1 ${tone}`}>
-      <p class="font-semibold uppercase tracking-wide opacity-70">{props.label}</p>
+      <p class="font-semibold tracking-wide uppercase opacity-70">{props.label}</p>
       <p class="truncate text-sm font-semibold">
         {props.player.name} · {fmt(props.player.points ?? 0)}
       </p>
@@ -213,6 +235,17 @@ function Sub({ title, children }: { title: string; children: ComponentChildren }
   );
 }
 
-const status = (s: string) => s.replaceAll("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+const status = (s: string) =>
+  s
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/^\w/, (c) => c.toUpperCase());
 const statusShort = (s: string) =>
-  ({ OUT: "OUT", DAY_TO_DAY: "DTD", QUESTIONABLE: "Q", DOUBTFUL: "D", PROBABLE: "P", SUSPENSION: "SUSP" })[s] ?? s;
+  ({
+    OUT: "OUT",
+    DAY_TO_DAY: "DTD",
+    QUESTIONABLE: "Q",
+    DOUBTFUL: "D",
+    PROBABLE: "P",
+    SUSPENSION: "SUSP",
+  })[s] ?? s;

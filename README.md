@@ -18,14 +18,14 @@ Styling: edit the TSX in `src/components/` or `src/styles.css` while `npm run de
 
 ## Layout
 
-| Path | What |
-|---|---|
-| `src/config.ts` | Channels, NBA highlight playlist ID (**update each season**), timezone |
-| `src/sources/` | YouTube RSS (`UULF…` long-form feeds = no Shorts) and ESPN scoreboard |
-| `src/collect.ts` | Gathers everything; each section succeeds or fails on its own |
-| `src/components/` | Page markup (Preact TSX → static HTML) |
-| `out/` | Generated site: `index.html` = today, `YYYY-MM-DD/` = archive |
-| `data/` | `state.json` (last run) and raw per-day JSON |
+| Path              | What                                                                   |
+| ----------------- | ---------------------------------------------------------------------- |
+| `src/config.ts`   | Channels, NBA highlight playlist ID (**update each season**), timezone |
+| `src/sources/`    | YouTube RSS (`UULF…` long-form feeds = no Shorts) and ESPN scoreboard  |
+| `src/collect.ts`  | Gathers everything; each section succeeds or fails on its own          |
+| `src/components/` | Page markup (Preact TSX → static HTML)                                 |
+| `out/`            | Generated site: `index.html` = today, `YYYY-MM-DD/` = archive          |
+| `data/`           | `state.json` (last run) and raw per-day JSON                           |
 
 ## Deploy (ThinkPad)
 

@@ -17,5 +17,8 @@ export async function readLastRunAt(): Promise<Date | null> {
 
 export async function writeLastRunAt(d: Date): Promise<void> {
   await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(STATE_FILE, JSON.stringify({ lastRunAt: d.toISOString() } satisfies State, null, 2));
+  await writeFile(
+    STATE_FILE,
+    JSON.stringify({ lastRunAt: d.toISOString() } satisfies State, null, 2),
+  );
 }

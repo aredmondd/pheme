@@ -6,16 +6,16 @@ export function VideoCard({ video }: { video: Video }) {
     <a
       href={video.url}
       target="_blank"
-      class="group flex flex-col sm:flex-row border-2 border-black/10 border-dashed gap-3 p-2"
+      class="group flex flex-col gap-3 border-2 border-dashed border-black/10 p-2 sm:flex-row"
     >
-      <div class="aspect-video md:w-24 shrink-0 overflow-hidden sm:w-44">
+      <div class="aspect-video shrink-0 overflow-hidden sm:w-44 md:w-24">
         <img src={video.thumbnail} alt="" loading="lazy" class="h-full w-full object-cover" />
       </div>
-      <div class="flex flex-col grow justify-between gap-4">
-        <p class="md:text-md text-sm text-black/75 line-clamp-2 md:line-clamp-3 leading-snug group-hover:underline">
+      <div class="flex grow flex-col justify-between gap-4">
+        <p class="md:text-md line-clamp-2 text-sm leading-snug text-black/75 group-hover:underline md:line-clamp-3">
           {video.title}
         </p>
-        <div class="font-mono flex justify-between items-end text-xs text-black/50">
+        <div class="flex items-end justify-between font-mono text-xs text-black/50">
           <p>{formatTimeEt(video.published)}</p>
           <p>@{video.channelName}</p>
         </div>

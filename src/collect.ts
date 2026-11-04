@@ -14,7 +14,14 @@ import { fetchFantasy, type Fantasy } from "./sources/espnFantasy.ts";
 import { findHighlight, type HighlightLink } from "./highlights.ts";
 import { fetchScoreboard, type Game } from "./sources/espn.ts";
 import { fetchBoxTopScorers, type PlayerLine } from "./sources/espnBox.ts";
-import { fantasyPrompt, nbaPrompt, newsPrompt, summarizeFantasy, summarizeNba, summarizeNews } from "./summaries.ts";
+import {
+  fantasyPrompt,
+  nbaPrompt,
+  newsPrompt,
+  summarizeFantasy,
+  summarizeNba,
+  summarizeNews,
+} from "./summaries.ts";
 import { fetchLongFormUploads, fetchPlaylistFeed, type Video } from "./sources/youtube.ts";
 
 /** A page section that either loaded or failed — failures render as a warning, not a crash. */
@@ -34,7 +41,11 @@ export type Recap = {
   games: Section<GameWithHighlight[]>;
   fantasy: Section<FantasyRecap>;
   /** AI summaries; null = nothing to summarize (no games / no fantasy data / no news videos). */
-  briefing: { nba: Section<string[]> | null; fantasy: Section<string[]> | null; news?: Section<string[]> | null };
+  briefing: {
+    nba: Section<string[]> | null;
+    fantasy: Section<string[]> | null;
+    news?: Section<string[]> | null;
+  };
 };
 
 async function section<T>(fn: () => Promise<T>): Promise<Section<T>> {
@@ -124,7 +135,9 @@ async function injuryChanges(fantasy: Fantasy, todayKey: string): Promise<Injury
   let previous: Recap | null = null;
   try {
     const dir = join(DATA_DIR, "days");
-    const files = (await readdir(dir)).filter((f) => f.endsWith(".json") && f < `${todayKey}.json`).sort();
+    const files = (await readdir(dir))
+      .filter((f) => f.endsWith(".json") && f < `${todayKey}.json`)
+      .sort();
     if (files.length) previous = JSON.parse(await readFile(join(dir, files.at(-1)!), "utf8"));
   } catch {
     return [];

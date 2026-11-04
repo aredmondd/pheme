@@ -21,48 +21,54 @@ export function Page({ recap, archive }: Props) {
         <title>{`NBA Catchup · ${formatDateKey(todayKey, { month: "short", day: "numeric" })}`}</title>
         <link rel="stylesheet" href="/styles.css" />
       </head>
-      <body class="min-h-screen bg-silver font-normal selection:text-red selection:bg-red/33">
-        <main class="mx-auto max-w-2xl px-4 pb-16 pt-8">
+      <body class="min-h-screen bg-silver font-normal selection:bg-red/33 selection:text-red">
+        <main class="mx-auto max-w-2xl px-4 pt-8 pb-16">
           <header class="mb-8">
-            <h1 class="text-6xl font-bold tracking-tight font-display text-green">
+            <h1 class="font-display text-6xl font-bold tracking-tight text-green">
               {formatDateKey(todayKey, { weekday: "long", month: "long", day: "numeric" })}
             </h1>
-            <p class="text-xs text-black opacity-50">
-              Generated {formatTimeEt(recap.generatedAt)}
-            </p>
+            <p class="text-xs text-black opacity-50">Generated {formatTimeEt(recap.generatedAt)}</p>
           </header>
 
           <Briefing briefing={recap.briefing} />
 
-          <h2 class="bg-green text-black text-2xl font-mono p-2 text-center">VIDEOS</h2>
+          <h2 class="bg-green p-2 text-center font-mono text-2xl text-black">VIDEOS</h2>
           <div class="mb-8 flex flex-col gap-4 border-4 border-green p-4">
             {[...recap.channels]
-              .sort((a, b) => Number(b.channel.handle === "@Chrispg1") - Number(a.channel.handle === "@Chrispg1"))
+              .sort(
+                (a, b) =>
+                  Number(b.channel.handle === "@Chrispg1") -
+                  Number(a.channel.handle === "@Chrispg1"),
+              )
               .flatMap(({ channel, videos }) =>
                 videos.ok
                   ? videos.data.map((v) => <VideoCard key={v.id} video={v} />)
                   : [
-                    <Warning key={channel.name}>
-                      Couldn't load {channel.name}: {videos.error}
-                    </Warning>,
-                  ]
+                      <Warning key={channel.name}>
+                        Couldn't load {channel.name}: {videos.error}
+                      </Warning>,
+                    ],
               )}
           </div>
 
-          <Section
-            title="Fantasy"
-            subtitle={recap.fantasy.ok ? recap.fantasy.data.leagueName : undefined}
-          >
+          <h2 class="bg-red p-2 text-center font-mono text-2xl text-black">FANTASY</h2>
+          <div class="mb-8 border-4 border-red p-4">
             {recap.fantasy.ok ? (
               <FantasySection f={recap.fantasy.data} />
             ) : (
               <Warning>Couldn't load fantasy: {recap.fantasy.error}</Warning>
             )}
-          </Section>
+          </div>
+
+          <h2 class="bg-red p-2 text-center font-mono text-2xl text-black">SCOREBOARD</h2>
 
           <Section
             title="Final scores"
-            subtitle={formatDateKey(recap.gamesDateKey, { weekday: "long", month: "short", day: "numeric" })}
+            subtitle={formatDateKey(recap.gamesDateKey, {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+            })}
           >
             {!games.ok ? (
               <Warning>Couldn't load scores: {games.error}</Warning>
@@ -79,7 +85,7 @@ export function Page({ recap, archive }: Props) {
 
           {archive.length > 0 && (
             <footer class="mt-12 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-              <h2 class="mb-2 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              <h2 class="mb-2 text-xs font-semibold tracking-widest text-zinc-500 uppercase">
                 Past days
               </h2>
               <ul class="flex flex-wrap gap-2 text-sm">

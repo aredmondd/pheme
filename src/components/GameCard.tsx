@@ -12,7 +12,10 @@ export function GameCard({ game }: { game: GameWithHighlight }) {
       <div class="mt-2 flex items-center justify-between border-t border-zinc-100 pt-2 text-xs dark:border-zinc-800">
         <span class="font-medium text-zinc-500">{game.status}</span>
         {h.kind === "video" ? (
-          <a href={h.video.url} class="font-semibold text-orange-600 hover:underline dark:text-orange-400">
+          <a
+            href={h.video.url}
+            class="font-semibold text-orange-600 hover:underline dark:text-orange-400"
+          >
             ▶ Highlights
           </a>
         ) : (
@@ -34,7 +37,9 @@ function TeamRow({ team, decided }: { team: TeamLine; decided: boolean }) {
         {team.displayName}
         {team.record && <span class="ml-1.5 text-xs font-normal text-zinc-400">{team.record}</span>}
       </span>
-      <span class={`text-lg tabular-nums ${team.winner ? "font-bold" : ""}`}>{team.score ?? "–"}</span>
+      <span class={`text-lg tabular-nums ${team.winner ? "font-bold" : ""}`}>
+        {team.score ?? "–"}
+      </span>
     </div>
   );
 }

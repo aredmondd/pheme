@@ -2,9 +2,7 @@ import type { Game } from "./sources/espn.ts";
 import type { Video } from "./sources/youtube.ts";
 import { formatDateKey } from "./dates.ts";
 
-export type HighlightLink =
-  | { kind: "video"; video: Video }
-  | { kind: "search"; url: string };
+export type HighlightLink = { kind: "video"; video: Video } | { kind: "search"; url: string };
 
 /**
  * NBA full-game highlight titles look like:
@@ -29,5 +27,8 @@ export function findHighlight(game: Game, gameDateKey: string, candidates: Video
   if (match) return { kind: "video", video: match };
 
   const q = `${game.away.name} at ${game.home.name} full game highlights ${dateText}`;
-  return { kind: "search", url: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` };
+  return {
+    kind: "search",
+    url: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+  };
 }
