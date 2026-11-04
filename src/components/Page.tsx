@@ -1,15 +1,15 @@
-import type { ComponentChildren } from "preact";
 import type { Recap } from "../collect.ts";
 import { etDateKey, formatDateKey, formatTimeEt } from "../dates.ts";
 import { Briefing } from "./Briefing.tsx";
+import { DayPicker, type DayLink } from "./DayPicker.tsx";
 import { FantasySection } from "./FantasySection.tsx";
 import { GameCard } from "./GameCard.tsx";
 import { Empty, Warning } from "./Notice.tsx";
 import { VideoCard } from "./VideoCard.tsx";
 
-type Props = { recap: Recap; archive: string[] };
+type Props = { recap: Recap; days: DayLink[] };
 
-export function Page({ recap, archive }: Props) {
+export function Page({ recap, days }: Props) {
   const todayKey = etDateKey(recap.generatedAt);
   const games = recap.games;
 
@@ -34,7 +34,7 @@ export function Page({ recap, archive }: Props) {
           <Briefing briefing={recap.briefing} />
 
           <h2 class="bg-green p-2 text-center font-mono text-2xl text-black">VIDEOS</h2>
-          <div class="mb-8 flex flex-col gap-4 border-4 border-green p-4">
+          <div class="mb-8 flex flex-col border-4 border-green">
             {[...recap.channels]
               .sort(
                 (a, b) =>
@@ -76,25 +76,7 @@ export function Page({ recap, archive }: Props) {
             )}
           </div>
 
-          {archive.length > 0 && (
-            <footer class="mt-12 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-              <h2 class="mb-2 text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-                Past days
-              </h2>
-              <ul class="flex flex-wrap gap-2 text-sm">
-                {archive.map((key) => (
-                  <li key={key}>
-                    <a
-                      href={`/${key}/`}
-                      class="rounded-md bg-zinc-200/60 px-2 py-1 hover:bg-zinc-200 dark:bg-zinc-800/60 dark:hover:bg-zinc-800"
-                    >
-                      {formatDateKey(key, { weekday: "short", month: "short", day: "numeric" })}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </footer>
-          )}
+          <DayPicker days={days} current={todayKey} />
 
           <p class="mt-12 text-center font-display text-5xl text-green">
             designed by aiden redmond

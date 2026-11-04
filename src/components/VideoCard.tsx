@@ -6,7 +6,7 @@ export function VideoCard({ video }: { video: Video }) {
     <a
       href={video.url}
       target="_blank"
-      class="group flex flex-col gap-3 bg-black p-2 text-white sm:flex-row"
+      class="group flex flex-col gap-3 bg-black p-4 text-white sm:flex-row"
     >
       <div class="aspect-video shrink-0 overflow-hidden sm:w-44 md:w-24">
         <img src={video.thumbnail} alt="" loading="lazy" class="h-full w-full object-cover" />

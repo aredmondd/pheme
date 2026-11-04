@@ -17,6 +17,7 @@ import { renderToString } from "preact-render-to-string";
 import { collect, type Recap } from "./collect.ts";
 import { DATA_DIR, FIRST_RUN_LOOKBACK_HOURS, OUT_DIR } from "./config.ts";
 import { etDateKey } from "./dates.ts";
+import { dayLinks } from "./components/DayPicker.tsx";
 import { Page } from "./components/Page.tsx";
 import { FIXTURES, fixtureRecap, type FixtureName } from "./fixtures.ts";
 import { sendNotification } from "./notify.ts";
@@ -46,8 +47,8 @@ if (fixture) {
 }
 
 const todayKey = cached ? etDateKey(recap.generatedAt) : etDateKey(now);
-const archive = await listArchive(todayKey);
-const html = "<!doctype html>" + renderToString(<Page recap={recap} archive={archive} />);
+const days = dayLinks([...(await listDayKeys()), todayKey]);
+const html = "<!doctype html>" + renderToString(<Page recap={recap} days={days} />);
 
 await mkdir(join(OUT_DIR, todayKey), { recursive: true });
 // Static assets (self-hosted fonts, icons…) are served from the site root: public/fonts/x.woff2 → /fonts/x.woff2
@@ -58,6 +59,8 @@ await cp("public", OUT_DIR, { recursive: true, filter: (src) => !src.endsWith(".
 );
 await writeFile(join(OUT_DIR, "index.html"), html);
 await writeFile(join(OUT_DIR, todayKey, "index.html"), html);
+// Older pages read this on load so their day picker can reach days built after them.
+await writeFile(join(OUT_DIR, "days.json"), JSON.stringify(days));
 
 // Keep the raw data per day — useful later for the AI overview / debugging / --cached dev builds.
 if (!cached) {
@@ -103,15 +106,13 @@ async function loadLatestRecap(): Promise<Recap> {
   );
 }
 
-async function listArchive(excludeKey: string): Promise<string[]> {
+/** Every day that already has a page in out/ (YYYY-MM-DD directories). */
+async function listDayKeys(): Promise<string[]> {
   try {
     const entries = await readdir(OUT_DIR, { withFileTypes: true });
     return entries
-      .filter((e) => e.isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(e.name) && e.name !== excludeKey)
-      .map((e) => e.name)
-      .sort()
-      .reverse()
-      .slice(0, 30);
+      .filter((e) => e.isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(e.name))
+      .map((e) => e.name);
   } catch {
     return [];
   }
