@@ -4,7 +4,7 @@ import { Briefing } from "./Briefing.tsx";
 import { DayPicker, type DayLink } from "./DayPicker.tsx";
 import { FantasySection } from "./FantasySection.tsx";
 import { GameCard } from "./GameCard.tsx";
-import { Empty, Warning } from "./Notice.tsx";
+import { Warning } from "./Notice.tsx";
 import { VideoCard } from "./VideoCard.tsx";
 
 type Props = { recap: Recap; days: DayLink[] };
@@ -62,13 +62,13 @@ export function Page({ recap, days }: Props) {
           </div>
 
           <h2 class="bg-blue p-2 text-center font-mono text-2xl text-black">SCOREBOARD</h2>
-          <div class="border-4 border-blue p-4">
+          <div class="border-4 border-blue sm:p-2">
             {!games.ok ? (
               <Warning>{games.error}</Warning>
             ) : games.data.length === 0 ? (
-              <Empty>No games last night.</Empty>
+              <p class="text-black">No games last night.</p>
             ) : (
-              <div class="grid gap-2 sm:grid-cols-2">
+              <div class="grid sm:grid-cols-2 sm:gap-2">
                 {games.data.map((g) => (
                   <GameCard key={g.id} game={g} />
                 ))}
@@ -78,9 +78,14 @@ export function Page({ recap, days }: Props) {
 
           <DayPicker days={days} current={todayKey} />
 
-          <p class="mt-12 text-center font-display text-5xl text-green">
-            designed by aiden redmond
+          <p class="mt-12 text-center font-display text-4xl text-green">
+            aiden redmond made this website
           </p>
+          <img
+            src="/images/Hello_my_name_is_sticker.webp"
+            alt="Hello my name is sticker"
+            class="mx-auto mt-4 w-48"
+          />
         </main>
       </body>
     </html>

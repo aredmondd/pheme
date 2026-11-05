@@ -24,7 +24,7 @@ function TeamRow({ team, decided }: { team: TeamLine; decided: boolean }) {
       </span>
 
       <span class={`truncate text-sm ${team.winner ? "font-semibold" : ""}`}>
-        {team.record && <span class="text-xs font-normal text-silver/50">({team.record})</span>}
+        {team.record && <span class="text-xs font-normal text-silver/33">({team.record})</span>}
       </span>
     </div>
   );

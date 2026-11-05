@@ -32,14 +32,14 @@ const script = `(() => {
 
 export function DayPicker({ days, current }: { days: DayLink[]; current: string }) {
   return (
-    <footer class="mt-12 flex flex-col items-center justify-center gap-3 border-4 border-green p-4">
-      <label for="day-picker" class="font-mono text-xl text-black">
-        DAYS
+    <footer class="mt-12 flex flex-col items-center justify-center gap-3">
+      <label for="day-picker" class="bg-green px-2 font-mono text-xl text-black">
+        WANT TO SEE THE PAST?
       </label>
       <select
         id="day-picker"
         data-current={current}
-        class="cursor-pointer border-4 border-black bg-silver px-2 py-1 font-mono text-sm text-black"
+        class="cursor-pointer border-2 border-black bg-silver px-2 py-1 font-mono text-sm text-black"
       >
         {days.map((d) => (
           <option key={d.key} value={d.href} selected={d.key === current}>
