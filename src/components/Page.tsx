@@ -1,14 +1,15 @@
-import type { ComponentChildren } from "preact";
 import type { Recap } from "../collect.ts";
 import { etDateKey, formatDateKey, formatTimeEt } from "../dates.ts";
 import { Briefing } from "./Briefing.tsx";
+import { DayPicker, type DayLink } from "./DayPicker.tsx";
 import { FantasySection } from "./FantasySection.tsx";
 import { GameCard } from "./GameCard.tsx";
+import { Warning } from "./Notice.tsx";
 import { VideoCard } from "./VideoCard.tsx";
 
-type Props = { recap: Recap; archive: string[] };
+type Props = { recap: Recap; days: DayLink[] };
 
-export function Page({ recap, archive }: Props) {
+export function Page({ recap, days }: Props) {
   const todayKey = etDateKey(recap.generatedAt);
   const games = recap.games;
 
@@ -33,7 +34,7 @@ export function Page({ recap, archive }: Props) {
           <Briefing briefing={recap.briefing} />
 
           <h2 class="bg-green p-2 text-center font-mono text-2xl text-black">VIDEOS</h2>
-          <div class="mb-8 flex flex-col gap-4 border-4 border-green p-4">
+          <div class="mb-8 flex flex-col border-4 border-green">
             {[...recap.channels]
               .sort(
                 (a, b) =>
@@ -45,7 +46,7 @@ export function Page({ recap, archive }: Props) {
                   ? videos.data.map((v) => <VideoCard key={v.id} video={v} />)
                   : [
                       <Warning key={channel.name}>
-                        Couldn't load {channel.name}: {videos.error}
+                        {channel.name}: {videos.error}
                       </Warning>,
                     ],
               )}
@@ -56,18 +57,18 @@ export function Page({ recap, archive }: Props) {
             {recap.fantasy.ok ? (
               <FantasySection f={recap.fantasy.data} />
             ) : (
-              <Warning>Couldn't load fantasy: {recap.fantasy.error}</Warning>
+              <Warning>{recap.fantasy.error}</Warning>
             )}
           </div>
 
           <h2 class="bg-blue p-2 text-center font-mono text-2xl text-black">SCOREBOARD</h2>
-          <div class="border-4 border-blue p-4">
+          <div class="border-4 border-blue sm:p-2">
             {!games.ok ? (
-              <Warning>Couldn't load scores: {games.error}</Warning>
+              <Warning>{games.error}</Warning>
             ) : games.data.length === 0 ? (
-              <Empty>No games last night.</Empty>
+              <p class="text-black">No games last night.</p>
             ) : (
-              <div class="grid gap-2 sm:grid-cols-2">
+              <div class="grid sm:grid-cols-2 sm:gap-2">
                 {games.data.map((g) => (
                   <GameCard key={g.id} game={g} />
                 ))}
@@ -75,55 +76,18 @@ export function Page({ recap, archive }: Props) {
             )}
           </div>
 
-          {archive.length > 0 && (
-            <footer class="mt-12 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-              <h2 class="mb-2 text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-                Past days
-              </h2>
-              <ul class="flex flex-wrap gap-2 text-sm">
-                {archive.map((key) => (
-                  <li key={key}>
-                    <a
-                      href={`/${key}/`}
-                      class="rounded-md bg-zinc-200/60 px-2 py-1 hover:bg-zinc-200 dark:bg-zinc-800/60 dark:hover:bg-zinc-800"
-                    >
-                      {formatDateKey(key, { weekday: "short", month: "short", day: "numeric" })}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </footer>
-          )}
+          <DayPicker days={days} current={todayKey} />
 
-          <p class="mt-12 text-center font-display text-5xl text-green">
-            designed by aiden redmond
+          <p class="mt-12 text-center font-display text-4xl text-green">
+            aiden redmond made this website
           </p>
+          <img
+            src="/images/Hello_my_name_is_sticker.webp"
+            alt="Hello my name is sticker"
+            class="mx-auto mt-4 w-48"
+          />
         </main>
       </body>
     </html>
   );
-}
-
-function Section(props: { title: string; subtitle?: string; children: ComponentChildren }) {
-  return (
-    <section class="mb-10">
-      <h2 class="mb-3 flex items-baseline justify-between border-b border-zinc-200 pb-2 dark:border-zinc-800">
-        <span class="text-lg font-bold">{props.title}</span>
-        {props.subtitle && <span class="text-sm text-zinc-500">{props.subtitle}</span>}
-      </h2>
-      {props.children}
-    </section>
-  );
-}
-
-function Warning({ children }: { children: ComponentChildren }) {
-  return (
-    <p class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200">
-      ⚠️ {children}
-    </p>
-  );
-}
-
-function Empty({ children }: { children: ComponentChildren }) {
-  return <p class="text-sm text-zinc-500">{children}</p>;
 }

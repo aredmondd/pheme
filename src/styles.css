@@ -3,8 +3,8 @@
 
 @font-face {
   font-family: "Inter";
-  src: url("/fonts/Inter-Regular.woff2") format("woff2");
-  font-weight: 400;
+  src: url("/fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -20,7 +20,7 @@
 @font-face {
   font-family: "JetBrains Mono";
   src: url("/fonts/JetBrainsMono.ttf") format("truetype");
-  font-weight: 400;
+  font-weight: 100 800;
   font-style: normal;
   font-display: swap;
 }
@@ -34,6 +34,12 @@
   --color-green: #00ff80;
   --color-blue: #5c7aff;
   --color-red: #a31621;
+}
+
+@layer base {
+  body {
+    font-synthesis: none;
+  }
 }
 
 /** a failed bg grid

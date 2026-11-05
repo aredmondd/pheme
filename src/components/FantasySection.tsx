@@ -6,8 +6,6 @@ const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 export function FantasySection({ f }: { f: FantasyRecap }) {
   const played = f.myPlayers.filter((p) => p.slot === "starter" && p.points !== null);
-  const best = played[0];
-  const worst = played.length > 1 ? played.at(-1) : undefined;
   const injured = f.myPlayers.filter((p) => p.injuryStatus !== "ACTIVE");
 
   return (
@@ -27,110 +25,92 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
         </div>
       )}
 
-      <div class="border-b-4 border-red p-4">
-        {(best || worst) && (
-          <div class="mb-2 flex flex-col gap-2 text-xs">
-            {best && <Callout label="Top" player={best} tone="good" />}
-            {worst && <Callout label="Worst" player={worst} tone="bad" />}
-          </div>
-        )}
-        <div class={`divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
+      <div class="border-b-4 border-red py-4">
+        <div class="mb-4 flex flex-col items-center">
+          <p class="inline bg-red px-2 text-center font-mono text-lg text-black">LAST NIGHT</p>
+        </div>
+        <div>
           {f.myPlayers.map((p) => (
             <PlayerRow key={p.id} p={p} />
           ))}
         </div>
-        {injured.length > 0 && (
-          <p class="mt-2 text-xs text-zinc-500">
-            Not active: {injured.map((p) => `${p.name} (${status(p.injuryStatus)})`).join(", ")}
-          </p>
-        )}
       </div>
 
       {f.opponentTop.length > 0 && (
-        <Sub title="Opponent's best last night">
-          <div class={`divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
-            {f.opponentTop.map((p) => (
-              <PlayerRow key={p.id} p={p} />
-            ))}
+        <div class="border-b-4 border-red py-4">
+          <div class="mb-4 flex items-center justify-center">
+            <p class="inline bg-red px-2 font-mono text-black">OPPONENT'S BEST</p>
           </div>
-        </Sub>
+          {f.opponentTop.map((p) => (
+            <PlayerRow key={p.id} p={p} />
+          ))}
+        </div>
       )}
 
-      <Sub title="League top 5 last night">
-        <ol class={`divide-y divide-zinc-100 p-0 dark:divide-zinc-800`}>
-          {f.topPerformers.map((p, i) => {
-            const mine = p.fantasyTeam?.id === f.me.id;
-            return (
-              <li
-                key={p.id}
-                class={`flex items-center gap-3 px-3 py-2 ${mine ? "bg-orange-50 dark:bg-orange-950/30" : ""}`}
-              >
-                <span class="w-4 text-center text-xs font-bold text-zinc-400">{i + 1}</span>
-                <Headshot src={p.headshot} />
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm font-medium">{p.name}</p>
-                  <p class="text-xs text-zinc-500">
-                    {p.proTeam} · {p.fantasyTeam ? p.fantasyTeam.name : "Free agent"}
-                  </p>
-                </div>
-                <span class="text-base font-bold tabular-nums">{fmt(p.points)}</span>
-              </li>
-            );
-          })}
-        </ol>
-      </Sub>
-
-      {f.otherMatchups.length > 0 && (
-        <Sub title={`Other matchups · Week ${f.matchupPeriodId}`}>
-          <div class="grid gap-2 sm:grid-cols-2">
-            {f.otherMatchups.map((m) => (
-              <div key={`${m.away.team.id}-${m.home.team.id}`} class={`space-y-1 text-sm`}>
-                {[m.away, m.home].map((s) => {
-                  const leading = s.points > (s === m.away ? m.home.points : m.away.points);
-                  return (
-                    <div
-                      key={s.team.id}
-                      class={`flex justify-between ${leading ? "font-semibold" : "text-zinc-500"}`}
-                    >
-                      <span class="truncate">{s.team.name}</span>
-                      <span class="tabular-nums">{fmt(s.points)}</span>
-                    </div>
-                  );
-                })}
+      <div class="mb-4 flex items-center justify-center pt-4">
+        <p class="inline bg-red px-2 font-mono text-black">TOP PERFORMERS</p>
+      </div>
+      <ol class="border-b-4 border-red pb-4">
+        {f.topPerformers.map((p, i) => {
+          const mine = p.fantasyTeam?.id === f.me.id;
+          return (
+            <li key={p.id} class={`flex items-center gap-4 px-3 py-2 ${mine ? "bg-green" : ""}`}>
+              <span class="w-4 text-center font-mono text-sm font-bold text-black">#{i + 1}</span>
+              <Headshot src={p.headshot} />
+              <div class="min-w-0 flex-1 text-black">
+                <p class="truncate text-sm font-bold">{p.name}</p>
+                <p class="font-mono text-xs text-black/33">
+                  {p.proTeam} / {p.fantasyTeam ? p.fantasyTeam.name : "Free agent"}
+                </p>
               </div>
-            ))}
-          </div>
-        </Sub>
+              <span class="font-mono font-bold text-black">{fmt(p.points)}</span>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div class="mb-4 flex items-center justify-center pt-4">
+        <p class="inline bg-red px-2 font-mono text-black">AROUND THE LEAGUE</p>
+      </div>
+      {f.otherMatchups.length > 0 && (
+        <div class="flex gap-2 border-b-4 border-red p-4 text-black sm:grid-cols-2">
+          {f.otherMatchups.map((m) => (
+            <div key={`${m.away.team.id}-${m.home.team.id}`} class={`space-y-1`}>
+              {[m.away, m.home].map((s) => {
+                const leading = s.points > (s === m.away ? m.home.points : m.away.points);
+                return (
+                  <div
+                    key={s.team.id}
+                    class={`flex flex-col justify-between ${leading ? "font-semibold" : "text-black/50"}`}
+                  >
+                    <span class="truncate text-sm">{s.team.name}</span>
+                    <span class="font-mono text-3xl">{fmt(s.points)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       )}
 
-      <Sub title="Standings">
-        <table class={`w-full p-0 text-sm`}>
-          <thead class="text-left text-xs text-zinc-500">
-            <tr>
-              <th class="px-3 py-2 font-medium">#</th>
-              <th class="py-2 font-medium">Team</th>
-              <th class="py-2 text-right font-medium">W-L</th>
-              <th class="px-3 py-2 text-right font-medium">PF</th>
+      <div class="mb-4 flex items-center justify-center pt-4">
+        <p class="inline bg-red px-2 font-mono text-black">LEAGUE STANDINGS</p>
+      </div>
+      <table class={`w-full p-0 text-black`}>
+        <tbody>
+          {f.standings.map((t, i) => (
+            <tr key={t.id} class={t.id === f.me.id ? "bg-green" : ""}>
+              <td class="text-md px-3 py-2 font-mono font-bold">#{i + 1}</td>
+              <td class="truncate py-2 text-black">{t.name}</td>
+              <td class="py-2 text-right font-mono font-bold">
+                {t.wins}-{t.losses}
+                {t.ties ? `-${t.ties}` : ""}
+              </td>
+              <td class="px-3 py-2 text-right font-mono">{fmt(t.pointsFor)}</td>
             </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
-            {f.standings.map((t, i) => (
-              <tr
-                key={t.id}
-                class={t.id === f.me.id ? "bg-orange-50 font-semibold dark:bg-orange-950/30" : ""}
-              >
-                <td class="px-3 py-2 text-zinc-400">{i + 1}</td>
-                <td class="max-w-0 truncate py-2">{t.name}</td>
-                <td class="py-2 text-right tabular-nums">
-                  {t.wins}-{t.losses}
-                  {t.ties ? `-${t.ties}` : ""}
-                </td>
-                <td class="px-3 py-2 text-right tabular-nums">{fmt(t.pointsFor)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Sub>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -159,9 +139,7 @@ function Side(props: { name: string; points: number; lead: boolean; right?: bool
   return (
     <div class={`min-w-0 flex-1 ${props.right ? "text-right" : ""}`}>
       <p class="truncate text-sm text-black/50">{props.name}</p>
-      <p
-        class={`font-mono text-3xl text-black tabular-nums ${props.lead ? "font-bold" : "text-black/20"}`}
-      >
+      <p class={`font-mono text-3xl text-black ${props.lead ? "font-bold" : "text-black/20"}`}>
         {fmt(props.points)}
       </p>
     </div>
@@ -171,30 +149,30 @@ function Side(props: { name: string; points: number; lead: boolean; right?: bool
 function PlayerRow({ p }: { p: RosterPlayer }) {
   const dim = p.slot !== "starter" || p.points === null;
   return (
-    <div class={`flex items-center gap-3 px-3 py-2 ${dim ? "opacity-60" : ""}`}>
+    <div class={`flex items-center gap-3 px-3 py-2 ${dim ? "opacity-60 grayscale" : ""}`}>
       <Headshot src={p.headshot} />
       <div class="min-w-0 flex-1">
-        <p class="truncate text-sm font-medium">
+        <p class="truncate text-sm font-bold text-black">
           {p.name}
           {p.injuryStatus !== "ACTIVE" && (
-            <span class="ml-1.5 rounded bg-red-100 px-1 text-[10px] font-bold text-red-700 dark:bg-red-950 dark:text-red-300">
+            <span class="ml-1.5 bg-red px-1 font-mono text-xs text-black">
               {statusShort(p.injuryStatus)}
             </span>
           )}
         </p>
-        <p class="text-xs text-zinc-500">
+        <p class="font-mono text-xs text-black/33">
           {p.proTeam}
-          {p.slot === "bench" && " · Bench"}
-          {p.slot === "ir" && " · IR"}
+          {p.slot === "bench" && " / Bench"}
+          {p.slot === "ir" && " / IR"}
         </p>
       </div>
-      <span class="text-sm font-semibold tabular-nums">
+      <span class="bg-blue px-1 font-mono text-sm font-bold text-black">
         {p.points !== null ? (
           fmt(p.points)
         ) : p.hadGame ? (
           "DNP"
         ) : (
-          <span class="text-xs font-normal text-zinc-400">No game</span>
+          <span class="text-xs font-normal text-green">No game</span>
         )}
       </span>
     </div>
@@ -224,15 +202,6 @@ function Headshot({ src }: { src: string }) {
   );
 }
 
-function Sub({ title, children }: { title: string; children: ComponentChildren }) {
-  return (
-    <div>
-      <h3 class="mb-2 text-sm font-semibold">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
 const status = (s: string) =>
   s
     .replaceAll("_", " ")
@@ -242,8 +211,5 @@ const statusShort = (s: string) =>
   ({
     OUT: "OUT",
     DAY_TO_DAY: "DTD",
-    QUESTIONABLE: "Q",
-    DOUBTFUL: "D",
-    PROBABLE: "P",
     SUSPENSION: "SUSP",
   })[s] ?? s;

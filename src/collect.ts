@@ -22,7 +22,7 @@ import {
   summarizeNba,
   summarizeNews,
 } from "./summaries.ts";
-import { fetchLongFormUploads, fetchPlaylistFeed, type Video } from "./sources/youtube.ts";
+import { fetchLongFormUploads, fetchPlaylistVideos, type Video } from "./sources/youtube.ts";
 
 /** A page section that either loaded or failed — failures render as a warning, not a crash. */
 export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -77,7 +77,7 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     // Highlight sources are best-effort: a failure here just means search links.
     const candidates = (
       await Promise.allSettled([
-        fetchPlaylistFeed(NBA_HIGHLIGHTS_PLAYLIST_ID),
+        fetchPlaylistVideos(NBA_HIGHLIGHTS_PLAYLIST_ID),
         fetchLongFormUploads(NBA_CHANNEL_ID),
       ])
     ).flatMap((r) => (r.status === "fulfilled" ? r.value : []));

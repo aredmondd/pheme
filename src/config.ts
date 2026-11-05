@@ -27,7 +27,7 @@ export const NBA_CHANNEL_ID = "UCWJ2lWNubArHWmf3FIHbfcQ";
 /**
  * NBA's "Nightly Full Game Highlights" playlist. This changes every season
  * (and possibly for playoffs) — find the new one on youtube.com/@NBA/playlists.
- * If it's stale, highlights fall back to the NBA long-form feed, then a search link.
+ * If it's stale, highlights fall back to NBA long-form uploads, then a search link.
  */
 export const NBA_HIGHLIGHTS_PLAYLIST_ID = "PLftRqjkDhxkg"; // 2026-27 season
 
