@@ -101,12 +101,12 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
           {f.standings.map((t, i) => (
             <tr key={t.id} class={t.id === f.me.id ? "bg-green" : ""}>
               <td class="text-md px-3 py-2 font-mono font-bold">#{i + 1}</td>
-              <td class="truncate py-2 text-black">{t.name}</td>
-              <td class="py-2 text-right font-mono font-bold">
+              <td class="w-full max-w-0 truncate py-2 text-black">{t.name}</td>
+              <td class="py-2 pl-3 text-right font-mono font-bold whitespace-nowrap">
                 {t.wins}-{t.losses}
                 {t.ties ? `-${t.ties}` : ""}
               </td>
-              <td class="px-3 py-2 text-right font-mono">{fmt(t.pointsFor)}</td>
+              <td class="px-3 py-2 text-right font-mono whitespace-nowrap">{fmt(t.pointsFor)}</td>
             </tr>
           ))}
         </tbody>
