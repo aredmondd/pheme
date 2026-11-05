@@ -73,7 +73,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
         <p class="inline bg-red px-2 font-mono text-black">AROUND THE LEAGUE</p>
       </div>
       {f.otherMatchups.length > 0 && (
-        <div class="flex gap-2 border-b-4 border-red p-4 text-black sm:grid-cols-2">
+        <div class="flex gap-2 border-b-4 border-red p-4 text-black">
           {f.otherMatchups.map((m) => (
             <div key={`${m.away.team.id}-${m.home.team.id}`} class={`space-y-1`}>
               {[m.away, m.home].map((s) => {

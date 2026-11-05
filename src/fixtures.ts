@@ -25,6 +25,7 @@ export function fixtureRecap(name: FixtureName, now: Date): Recap {
       games: { ok: true, data: [] },
       // A loaded-but-empty fantasy league isn't representable, so it shows as unavailable.
       fantasy: { ok: false, error: "No fantasy data (fixture)" },
+      standings: { ok: true, data: { east: [], west: [] } },
       briefing: { nba: null, fantasy: null, news: null },
     };
   }
@@ -35,6 +36,7 @@ export function fixtureRecap(name: FixtureName, now: Date): Recap {
     channels: CHANNELS.map((channel) => ({ channel, videos: fail(`${channel.name} feed`) })),
     games: fail("Scoreboard"),
     fantasy: fail("ESPN fantasy"),
+    standings: fail("ESPN standings"),
     briefing: {
       nba: fail("NBA summary"),
       fantasy: fail("Fantasy summary"),

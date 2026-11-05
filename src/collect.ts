@@ -14,6 +14,7 @@ import { fetchFantasy, type Fantasy } from "./sources/espnFantasy.ts";
 import { findHighlight, type HighlightLink } from "./highlights.ts";
 import { fetchScoreboard, type Game } from "./sources/espn.ts";
 import { fetchBoxTopScorers, type PlayerLine } from "./sources/espnBox.ts";
+import { fetchStandings, type Standings } from "./sources/espnStandings.ts";
 import {
   fantasyPrompt,
   nbaPrompt,
@@ -40,6 +41,8 @@ export type Recap = {
   channels: ChannelVideos[];
   games: Section<GameWithHighlight[]>;
   fantasy: Section<FantasyRecap>;
+  /** Optional: days saved before standings existed don't have it. */
+  standings?: Section<Standings>;
   /** AI summaries; null = nothing to summarize (no games / no fantasy data / no news videos). */
   briefing: {
     nba: Section<string[]> | null;
@@ -93,7 +96,14 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     return { ...fantasy, injuryChanges: await injuryChanges(fantasy, etDateKey(now)) };
   });
 
-  const [channels, games, fantasy] = await Promise.all([channelsP, gamesP, fantasyP]);
+  const standingsP = section(fetchStandings);
+
+  const [channels, games, fantasy, standings] = await Promise.all([
+    channelsP,
+    gamesP,
+    fantasyP,
+    standingsP,
+  ]);
 
   const finished = games.ok ? games.data.filter((g) => g.completed) : [];
   const newsVideos = channels
@@ -126,6 +136,7 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     channels,
     games,
     fantasy,
+    standings,
     briefing: { nba: nbaBriefing, fantasy: fantasyBriefing, news: newsBriefing },
   };
 }
