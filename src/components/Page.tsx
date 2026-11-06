@@ -24,7 +24,7 @@ export function Page({ recap, days }: Props) {
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body class="min-h-screen bg-silver font-normal selection:bg-red/33 selection:text-red">
-        <main class="mx-auto px-4 pt-8 pb-16">
+        <main class="mx-auto max-w-3xl px-4 pt-8 pb-16">
           <header class="mb-8">
             <h1 class="font-display text-6xl font-bold tracking-tight text-green">
               {formatDateKey(todayKey, { weekday: "long", month: "long", day: "numeric" })}
