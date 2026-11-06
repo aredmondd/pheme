@@ -13,16 +13,9 @@ import { etDateKey, previousEtDateKey } from "./dates.ts";
 import { fetchFantasy, type Fantasy } from "./sources/espnFantasy.ts";
 import { findHighlight, type HighlightLink } from "./highlights.ts";
 import { fetchScoreboard, type Game } from "./sources/espn.ts";
-import { fetchBoxTopScorers, type PlayerLine } from "./sources/espnBox.ts";
+import { fetchGameRecap, type GameRecap } from "./sources/espnRecap.ts";
 import { fetchStandings, type Standings } from "./sources/espnStandings.ts";
-import {
-  fantasyPrompt,
-  nbaPrompt,
-  newsPrompt,
-  summarizeFantasy,
-  summarizeNba,
-  summarizeNews,
-} from "./summaries.ts";
+import { fantasyPrompt, nbaPrompt, summarizeFantasy, summarizeNba } from "./summaries.ts";
 import { fetchLongFormUploads, fetchPlaylistVideos, type Video } from "./sources/youtube.ts";
 import { timed } from "./timing.ts";
 
@@ -44,10 +37,12 @@ export type Recap = {
   fantasy: Section<FantasyRecap>;
   /** Optional: days saved before standings existed don't have it. */
   standings?: Section<Standings>;
-  /** AI summaries; null = nothing to summarize (no games / no fantasy data / no news videos). */
+  /** AI summaries; null = nothing to summarize (no games or news videos / no fantasy data). */
   briefing: {
+    /** Last night: games plus news-channel video titles. */
     nba: Section<string[]> | null;
     fantasy: Section<string[]> | null;
+    /** Only on days saved before news was folded into `nba`. */
     news?: Section<string[]> | null;
   };
 };
@@ -109,32 +104,29 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
   const newsVideos = channels
     .filter((c) => c.channel.news && c.videos.ok)
     .flatMap((c) => (c.videos.ok ? c.videos.data : []));
-  const [nbaBriefing, fantasyBriefing, newsBriefing] = await timed("summary phase (parallel)", () =>
+  const [nbaBriefing, fantasyBriefing] = await timed("summary phase (parallel)", () =>
     Promise.all([
-      finished.length
+      finished.length || newsVideos.length
         ? section("briefing: NBA (total)", async () => {
-            // Box scores are best-effort: a missing one just means fewer details for that game.
-            const boxes = new Map<string, Map<string, PlayerLine[]>>();
-            await timed(`briefing: ${finished.length} box scores`, () =>
+            // Recaps are best-effort: a missing one just means less detail for that game.
+            const recaps = new Map<string, GameRecap>();
+            await timed(`briefing: ${finished.length} game recaps`, () =>
               Promise.all(
                 finished.map((g) =>
-                  fetchBoxTopScorers(g.id).then(
-                    (b) => boxes.set(g.id, b),
-                    (err) => console.warn(`Box score ${g.id}: ${err.message}`),
+                  fetchGameRecap(g.id).then(
+                    (r) => recaps.set(g.id, r),
+                    (err) => console.warn(`Game recap ${g.id}: ${err.message}`),
                   ),
                 ),
               ),
             );
             return timed("briefing: NBA Groq", () =>
-              summarizeNba(nbaPrompt(gamesDateKey, finished, boxes)),
+              summarizeNba(nbaPrompt(gamesDateKey, finished, recaps, newsVideos)),
             );
           })
         : null,
       fantasy.ok
         ? section("briefing: fantasy Groq", () => summarizeFantasy(fantasyPrompt(fantasy.data)))
-        : null,
-      newsVideos.length
-        ? section("briefing: news Groq", () => summarizeNews(newsPrompt(newsVideos)))
         : null,
     ]),
   );
@@ -147,7 +139,7 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     games,
     fantasy,
     standings,
-    briefing: { nba: nbaBriefing, fantasy: fantasyBriefing, news: newsBriefing },
+    briefing: { nba: nbaBriefing, fantasy: fantasyBriefing },
   };
 }
 

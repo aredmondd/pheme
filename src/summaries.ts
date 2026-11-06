@@ -1,35 +1,46 @@
 /**
- * The two AI summaries at the top of the page. Prompts are built only from
+ * The AI summaries at the top of the page: last night (games + news titles) and fantasy. Prompts are built only from
  * data we already fetched, and every bullet is checked: if it contains a number
  * that isn't in the input, it's dropped (the model got a stat wrong).
  */
 import { formatDateKey } from "./dates.ts";
 import { complete } from "./llm/groq.ts";
 import type { Game } from "./sources/espn.ts";
-import type { PlayerLine } from "./sources/espnBox.ts";
+import type { GameRecap } from "./sources/espnRecap.ts";
 import type { Fantasy, RosterPlayer } from "./sources/espnFantasy.ts";
 
-const NBA_SYSTEM = `You write a quick morning NBA recap for a fan who missed last night's games. Use ONLY the data provided. Never invent stats, injuries, storylines, or context.
-Rules:
-- Only cite a stat that appears on that player's own line. Never combine stats from different players.
-- You only know final scores and box score lines. Never describe how a game unfolded (comebacks, late runs, clutch shots, game-winners).
-- Use players' full names as given and full team names.
-Write 5–8 bullets, most interesting first: big individual performances, close games and overtime, blowouts. One sentence per bullet, plain and punchy, no hashtags or emoji. Don't cover every game. Output only the bullets, each starting with "- ".`;
+const NBA_SYSTEM = `You write the top of a morning NBA briefing for a fan who missed last night. They scan it in 15 seconds. Scores and box scores are already shown below your text, so your job is only to say what mattered and why.
+
+Input: each game from last night (final score, records, flags, and the opening of the AP recap), then titles of YouTube videos from the past day.
+
+Pick the 4 to 6 biggest stories of the night, ranked:
+1. Career highs, historic marks, and real news (injuries, trades, suspensions).
+2. Dramatic finishes (game-winners, overtime, big comebacks) and notable streaks.
+3. Fights, ejections, beef, and memorable moments from video titles.
+A story can come from a game, a video title, or both. When they're about the same thing, combine them into one bullet. Skip routine games.
+
+Each bullet:
+- One sentence, 20 words or fewer.
+- Says what happened and why it matters, using the input's own framing (career high, game-winner, sixth straight win, first since...).
+- At most two numbers. Never include the final score. Never list a stat line.
+- No emoji, no profanity, no filler verbs ("erupted", "poured in", "dropped", "delivered", "notched").
+
+Good: "Jayson Tatum's step-back three with two seconds left beat the Knicks and extended Boston's win streak to seven."
+Bad: "Jayson Tatum scored 38 points with 7 rebounds and 5 assists in Boston's 110-108 win over New York."
+
+Facts: only what the input states. How a game unfolded must come from the AP recap or a video title. Keep details exactly as strong as the source, no stronger and no weaker: "with a second left" is not a buzzer-beater, and "sixth straight game with 35" must keep "straight". Copy numbers exactly as written (write "1996-1997", not "1996-97").
+Video titles are exaggerated slang. A bullet built from a title is a plain paraphrase of that title and nothing more: keep every person it names and who did what to whom, and add no reactions, consequences, timing, or causes it doesn't state. If a title doesn't make clear who was involved, skip it.
+
+Output only the bullets, each starting with "- ".`;
 
 const FANTASY_SYSTEM = `You write a short morning fantasy basketball recap for the manager of the team named in the data. Address them as "you". Use ONLY the data provided: never invent stats, trends, projections, injuries, or advice. Only cite a number exactly as it appears on that player's or team's own line. Only use words like "league-high", "best", "worst", or "top" when the data's ranking directly shows it. Players marked BENCH or IR scored points that did not count toward the matchup. Write 3–5 bullets: first where the matchup stands, then the standout and the dud from their roster, then anything notable from the opponent or the rest of the league (for example a top-5 scorer who is a free agent). One sentence per bullet, plain and conversational, no emoji. Output only the bullets, each starting with "- ".`;
 
-const NEWS_SYSTEM = `You write the "around the league" part of a morning NBA recap, built only from the titles of videos a YouTuber posted in the last day. Titles are hype-y and full of slang and emoji; translate them into plain, neutral sentences. Use ONLY what the titles say: never add stats, scores, causes, outcomes, or context a title doesn't state.
-Order bullets by importance, strictly in these tiers: (1) real news: injuries, trades, signings, suspensions, and team or league announcements such as jersey retirements or awards; (2) ejections, fights, and beef; (3) memorable moments and reactions. Every tier-1 item comes before any tier-2 item. Several titles about the same moment are one bullet. Skip titles that don't say what happened.
-Write 2–5 bullets, fewer when there's little of note. One sentence per bullet, plain and punchy, no emoji, no profanity. Use players' names as given. Output only the bullets, each starting with "- ".`;
-
-export function newsPrompt(videos: { title: string }[]): string {
-  return `Video titles from the last day, newest first:\n\n${videos.map((v) => `- ${v.title}`).join("\n")}`;
-}
-
+/** Games plus news-channel video titles, for the combined "last night" summary. */
 export function nbaPrompt(
   gamesDateKey: string,
   games: Game[],
-  boxes: Map<string, Map<string, PlayerLine[]>>,
+  recaps: Map<string, GameRecap>,
+  videos: { title: string }[],
 ): string {
   const day = formatDateKey(gamesDateKey, {
     weekday: "long",
@@ -37,20 +48,35 @@ export function nbaPrompt(
     day: "numeric",
     year: "numeric",
   });
-  const player = (p: PlayerLine) =>
-    `${p.name} ${p.points} PTS, ${p.rebounds} REB, ${p.assists} AST${p.threes ? `, ${p.threes} 3PM` : ""}`;
-  const lines = games
+  const blocks = games
     .filter((g) => g.completed && g.away.score !== null && g.home.score !== null)
     .map((g) => {
-      const margin = Math.abs(g.away.score! - g.home.score!);
-      const box = boxes.get(g.id);
-      const team = (t: Game["away"]) =>
-        box?.get(t.abbreviation)?.length
-          ? `\n  ${t.displayName}: ${box.get(t.abbreviation)!.map(player).join("; ")}`
-          : "";
-      return `${g.away.displayName} ${g.away.score} at ${g.home.displayName} ${g.home.score} (${g.status}, margin ${margin})${team(g.away)}${team(g.home)}`;
+      const [w, l] = g.away.score! > g.home.score! ? [g.away, g.home] : [g.home, g.away];
+      const recap = recaps.get(g.id);
+      const margin = w.score! - l.score!;
+      const flags = [
+        ...(g.status.includes("OT") ? ["overtime"] : []),
+        ...(margin <= 3 ? ["one-possession finish"] : []),
+        ...(margin >= 20 ? ["blowout"] : []),
+      ];
+      const deficit = recap?.largestLead.get(l.abbreviation) ?? 0;
+      if (deficit >= 12) flags.push(`${w.name} came back from ${deficit} down`);
+      const records =
+        w.record && l.record ? ` Records now: ${w.name} ${w.record}, ${l.name} ${l.record}.` : "";
+      return [
+        `${w.displayName} ${w.score}, ${l.displayName} ${l.score} (${g.status}).${records}${flags.length ? ` [${flags.join("; ")}]` : ""}`,
+        `AP recap: ${recap?.ap ?? "(none)"}`,
+      ].join("\n");
     });
-  return `NBA games on ${day}. Each game: final score, then each team's top scorers.\n\n${lines.join("\n\n")}`;
+  const parts = [`LAST NIGHT'S GAMES (${day})`, "", blocks.join("\n\n") || "(no games)"];
+  if (videos.length)
+    parts.push(
+      "",
+      "YOUTUBE VIDEO TITLES FROM THE PAST DAY (newest first)",
+      "",
+      ...videos.map((v) => `- ${v.title}`),
+    );
+  return parts.join("\n");
 }
 
 export function fantasyPrompt(f: Fantasy): string {
@@ -105,16 +131,15 @@ export function fantasyPrompt(f: Fantasy): string {
 
 export const summarizeNba = (prompt: string) => summarize(NBA_SYSTEM, prompt);
 export const summarizeFantasy = (prompt: string) => summarize(FANTASY_SYSTEM, prompt);
-export const summarizeNews = (prompt: string) => summarize(NEWS_SYSTEM, prompt);
 
 async function summarize(system: string, user: string): Promise<string[]> {
   const raw = await complete(system, user);
   const bullets = parseBullets(raw);
-  const kept = bullets.filter((b) => numbersAreGrounded(b, user));
-  if (kept.length < bullets.length)
-    console.warn(
-      `Dropped ${bullets.length - kept.length} summary bullet(s) with numbers not in the data.`,
-    );
+  const kept = bullets.filter((b) => {
+    if (numbersAreGrounded(b, user)) return true;
+    console.warn(`Dropped summary bullet with numbers not in the data: ${b}`);
+    return false;
+  });
   if (kept.length === 0) throw new Error("Summary had no usable bullets");
   return kept;
 }

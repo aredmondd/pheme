@@ -12,7 +12,7 @@ export type Channel = {
   name: string;
   handle: string;
   channelId: string;
-  /** Feed this channel's video titles into the "Around the league" AI summary. */
+  /** Feed this channel's video titles into the "last night" AI summary. */
   news?: boolean;
 };
 

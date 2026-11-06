@@ -8,7 +8,7 @@ export function Briefing({ briefing }: { briefing: Recap["briefing"] }) {
       <h2 class="bg-blue p-2 text-center font-mono text-2xl text-black">AI SUMMARY</h2>
       <section class="mb-10 border-4 border-blue p-4">
         <div class="flex flex-col gap-8">
-          {briefing.nba && <Group title="HIGHLIGHTS" summary={briefing.nba} />}
+          {briefing.nba && <Group title="LAST NIGHT" summary={briefing.nba} />}
           {briefing.news && <Group title="LEAGUE" summary={briefing.news} />}
           {briefing.fantasy && <Group title="FANTASY" summary={briefing.fantasy} />}
         </div>
