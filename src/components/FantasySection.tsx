@@ -14,7 +14,9 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
 
       {f.injuryChanges.length > 0 && (
         <div class="border-b-4 border-red p-4">
-          <p class="inline bg-red px-2 font-mono text-black uppercase">Injury updates</p>
+          <p class="inline bg-red px-2 text-center font-mono text-lg text-black uppercase">
+            Injury updates
+          </p>
           <ul class="mt-1 space-y-0.5">
             {f.injuryChanges.map((c) => (
               <li key={c.name} class="text-black/75">
@@ -39,7 +41,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
       {f.opponentTop.length > 0 && (
         <div class="border-b-4 border-red py-4">
           <div class="mb-4 flex items-center justify-center">
-            <p class="inline bg-red px-2 font-mono text-black">OPPONENT'S BEST</p>
+            <p class="inline bg-red px-2 font-mono text-lg text-black">OPPONENT'S BEST</p>
           </div>
           {f.opponentTop.map((p) => (
             <PlayerRow key={p.id} p={p} />
@@ -48,7 +50,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
       )}
 
       <div class="mb-4 flex items-center justify-center pt-4">
-        <p class="inline bg-red px-2 font-mono text-black">TOP PERFORMERS</p>
+        <p class="inline bg-red px-2 font-mono text-lg text-black">TOP PERFORMERS</p>
       </div>
       <ol class="border-b-4 border-red pb-4">
         {f.topPerformers.map((p, i) => {
@@ -70,18 +72,19 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
       </ol>
 
       <div class="mb-4 flex items-center justify-center pt-4">
-        <p class="inline bg-red px-2 font-mono text-black">AROUND THE LEAGUE</p>
+        <p class="inline bg-red px-2 font-mono text-lg text-black">AROUND THE LEAGUE</p>
       </div>
       {f.otherMatchups.length > 0 && (
-        <div class="flex gap-2 border-b-4 border-red p-4 text-black">
+        <div class="flex flex-col gap-2 border-b-4 border-red p-4 text-black">
           {f.otherMatchups.map((m) => (
-            <div key={`${m.away.team.id}-${m.home.team.id}`} class={`space-y-1`}>
+            <div key={`${m.away.team.id}-${m.home.team.id}`} class={`flex justify-between`}>
               {[m.away, m.home].map((s) => {
+                const home = s === m.home;
                 const leading = s.points > (s === m.away ? m.home.points : m.away.points);
                 return (
                   <div
                     key={s.team.id}
-                    class={`flex flex-col justify-between ${leading ? "font-semibold" : "text-black/50"}`}
+                    class={`flex flex-col justify-between ${home ? "text-right" : ""} ${leading ? "font-semibold" : "text-black/50"}`}
                   >
                     <span class="truncate text-sm">{s.team.name}</span>
                     <span class="font-mono text-3xl">{fmt(s.points)}</span>
@@ -94,7 +97,7 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
       )}
 
       <div class="mb-4 flex items-center justify-center pt-4">
-        <p class="inline bg-red px-2 font-mono text-black">LEAGUE STANDINGS</p>
+        <p class="inline bg-red px-2 font-mono text-lg text-black">LEAGUE STANDINGS</p>
       </div>
       <table class={`w-full p-0 text-black`}>
         <tbody>
@@ -106,7 +109,9 @@ export function FantasySection({ f }: { f: FantasyRecap }) {
                 {t.wins}-{t.losses}
                 {t.ties ? `-${t.ties}` : ""}
               </td>
-              <td class="px-3 py-2 text-right font-mono whitespace-nowrap">{fmt(t.pointsFor)}</td>
+              <td class="px-3 py-2 text-right font-mono whitespace-nowrap text-black/50">
+                {fmt(t.pointsFor)}
+              </td>
             </tr>
           ))}
         </tbody>

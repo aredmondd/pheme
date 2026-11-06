@@ -104,6 +104,7 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
   const newsVideos = channels
     .filter((c) => c.channel.news && c.videos.ok)
     .flatMap((c) => (c.videos.ok ? c.videos.data : []));
+
   const [nbaBriefing, fantasyBriefing] = await timed("summary phase (parallel)", () =>
     Promise.all([
       finished.length || newsVideos.length
