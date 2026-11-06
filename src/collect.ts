@@ -126,7 +126,9 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
           })
         : null,
       fantasy.ok
-        ? section("briefing: fantasy Groq", () => summarizeFantasy(fantasyPrompt(fantasy.data)))
+        ? section("briefing: fantasy Groq", () =>
+            summarizeFantasy(fantasyPrompt(fantasy.data), fantasy.data.me.name),
+          )
         : null,
     ]),
   );

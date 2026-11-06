@@ -4,7 +4,7 @@
  */
 const DEFAULT_MODEL = "openai/gpt-oss-120b";
 
-export async function complete(system: string, user: string): Promise<string> {
+export async function complete(system: string, user: string, retried = false): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY not set");
 
@@ -23,6 +23,13 @@ export async function complete(system: string, user: string): Promise<string> {
     }),
     signal: AbortSignal.timeout(60_000),
   });
+  // Free tier is 8k tokens/minute, shared by the parallel summary calls: wait it out once.
+  const wait = Number(res.headers.get("retry-after"));
+  if (res.status === 429 && !retried && wait > 0 && wait <= 60) {
+    console.warn(`Groq rate limited; retrying in ${wait}s`);
+    await new Promise((r) => setTimeout(r, wait * 1000));
+    return complete(system, user, true);
+  }
   if (!res.ok) throw new Error(`Groq: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   const data: any = await res.json();
   const text: string | undefined = data.choices?.[0]?.message?.content;

@@ -7,7 +7,8 @@ import { formatDateKey } from "./dates.ts";
 import { complete } from "./llm/groq.ts";
 import type { Game } from "./sources/espn.ts";
 import type { GameRecap } from "./sources/espnRecap.ts";
-import type { Fantasy, RosterPlayer } from "./sources/espnFantasy.ts";
+import type { FantasyRecap } from "./collect.ts";
+import type { RosterPlayer } from "./sources/espnFantasy.ts";
 
 const NBA_SYSTEM = `You write the top of a morning NBA briefing for a fan who missed last night. They scan it in 15 seconds. Scores and box scores are already shown below your text, so your job is only to say what mattered and why.
 
@@ -33,7 +34,22 @@ Video titles are exaggerated slang. A bullet built from a title is a plain parap
 
 Output only the bullets, each starting with "- ".`;
 
-const FANTASY_SYSTEM = `You write a short morning fantasy basketball recap for the manager of the team named in the data. Address them as "you". Use ONLY the data provided: never invent stats, trends, projections, injuries, or advice. Only cite a number exactly as it appears on that player's or team's own line. Only use words like "league-high", "best", "worst", or "top" when the data's ranking directly shows it. Players marked BENCH or IR scored points that did not count toward the matchup. Write 3–5 bullets: first where the matchup stands, then the standout and the dud from their roster, then anything notable from the opponent or the rest of the league (for example a top-5 scorer who is a free agent). One sentence per bullet, plain and conversational, no emoji. Output only the bullets, each starting with "- ".`;
+const FANTASY_SYSTEM = `You write the fantasy basketball part of a morning briefing for the manager of the team named in the data. Address them as "you". The page already shows the matchup score, every player's points, the league's top scorers, other matchups, and standings, so don't restate those. Your job is to say how their week is going and what's worth knowing.
+
+Write 2 to 4 bullets, in this order, skipping any that has nothing notable:
+1. Where the matchup is headed: the current margin, then how the games left compare and the projected margin. Say whether it looks comfortable, close, or slipping away.
+2. Injuries that affect the rest of their week: status changes since yesterday, and starters currently listed as out or day to day.
+3. Which of their players beat their average by the most last night, and which fell furthest below it (not raw points). Bench and IR points didn't count toward the matchup.
+4. At most one thing from elsewhere, only if it touches their week: the opponent's biggest night, a free agent in the top five, or their own standings position. Skip players on other fantasy teams.
+
+Each bullet: one sentence, 20 words or fewer, at most two numbers. Plain and conversational. No emoji, no filler verbs ("exploded", "erupted", "dropped", "lagged").
+Good: "You're up 81 with 3 more player-games than Blanco, projected to win by 134."
+Good: "Bam Adebayo scored 62, 24 above his average; Jamal Murray was 16 under his."
+Bad: "Bam Adebayo overperformed by +24, while Jamal Murray underperformed by -16 versus their averages."
+
+Facts: only what the data states, with numbers copied exactly. Never calculate a new number (differences, ranks, totals). State injury statuses as given, with nothing added: no "could miss games" or "for the rest of the week". Projections are ESPN estimates: say "projected", never "will". Don't give advice (start, sit, add, drop, trade). Only use words like "best" or "top" when the data's ranking shows it.
+
+Output only the bullets, each starting with "- ".`;
 
 /** Games plus news-channel video titles, for the combined "last night" summary. */
 export function nbaPrompt(
@@ -79,15 +95,20 @@ export function nbaPrompt(
   return parts.join("\n");
 }
 
-export function fantasyPrompt(f: Fantasy): string {
+export function fantasyPrompt(f: FantasyRecap): string {
   const rec = (t: { wins: number; losses: number }) => `${t.wins}-${t.losses}`;
+  const status = (s: string) => s.replaceAll("_", " ").toLowerCase();
   const pl = (p: RosterPlayer) => {
-    const pts = p.points === null ? "no game" : `${p.points} fpts`;
+    const diff = p.points !== null && p.average !== null ? p.points - p.average : null;
+    const vsAvg =
+      diff === null
+        ? ""
+        : ` (${diff === 0 ? "exactly" : `${Math.abs(diff)} ${diff > 0 ? "above" : "below"}`} his ${p.average} average)`;
     const notes = [
-      ...(p.slot !== "starter" ? [`${p.slot.toUpperCase()} (points don't count)`] : []),
-      ...(p.injuryStatus !== "ACTIVE" ? [p.injuryStatus.replaceAll("_", " ").toLowerCase()] : []),
+      ...(p.slot !== "starter" ? [`${p.slot.toUpperCase()}, points didn't count`] : []),
+      ...(p.injuryStatus !== "ACTIVE" ? [status(p.injuryStatus)] : []),
     ];
-    return `- ${p.name} (${p.proTeam}): ${pts}${notes.length ? ` [${notes.join(", ")}]` : ""}`;
+    return `- ${p.name} (${p.proTeam}): ${p.points === null ? "no game" : `${p.points} fpts`}${vsAvg}${notes.length ? ` [${notes.join(", ")}]` : ""}`;
   };
   const out = [
     `My team: ${f.me.name} (${rec(f.me)}). League: ${f.leagueName}, H2H points, ${f.standings.length} teams.`,
@@ -101,7 +122,22 @@ export function fantasyPrompt(f: Fantasy): string {
     out.push(
       `Week ${f.matchupPeriodId} matchup so far: ${f.me.name} ${mine.points} vs ${opp.team.name} ${opp.points} (${diff >= 0 ? `leading by ${diff}` : `trailing by ${-diff}`}).`,
     );
+    if (f.outlook) {
+      const { me, opponent, daysLeft } = f.outlook;
+      const margin = me.projectedFinal - opponent.projectedFinal;
+      out.push(
+        daysLeft === 0
+          ? "No games left in this matchup."
+          : `Rest of the week (${daysLeft} more days with games): ${f.me.name} have ${me.gamesLeft} player-games left, projected final ${me.projectedFinal}; ${opp.team.name} have ${opponent.gamesLeft} player-games left, projected final ${opponent.projectedFinal}. Projected ${margin >= 0 ? `win by ${margin}` : `loss by ${-margin}`}.`,
+      );
+    }
   }
+  if (f.injuryChanges.length)
+    out.push(
+      "",
+      "Injury status changes on my roster since yesterday:",
+      ...f.injuryChanges.map((c) => `- ${c.name}: ${status(c.from)} → ${status(c.to)}`),
+    );
   out.push("", "My players last night:", ...f.myPlayers.map(pl));
   if (f.opponentTop.length)
     out.push("", "Opponent's top starters last night:", ...f.opponentTop.map(pl));
@@ -130,13 +166,20 @@ export function fantasyPrompt(f: Fantasy): string {
 }
 
 export const summarizeNba = (prompt: string) => summarize(NBA_SYSTEM, prompt);
-export const summarizeFantasy = (prompt: string) => summarize(FANTASY_SYSTEM, prompt);
+/** Fantasy bullets say "you"; ground those numbers against the manager's team name. */
+export const summarizeFantasy = (prompt: string, myTeamName: string) =>
+  summarize(FANTASY_SYSTEM, prompt, (b) => b.replace(/\byou(?:'re|r)?\b/gi, myTeamName));
 
-async function summarize(system: string, user: string): Promise<string[]> {
+async function summarize(
+  system: string,
+  user: string,
+  /** Rewrites a bullet before the grounding check only (e.g. "you" → a team name). */
+  forGrounding: (bullet: string) => string = (b) => b,
+): Promise<string[]> {
   const raw = await complete(system, user);
   const bullets = parseBullets(raw);
   const kept = bullets.filter((b) => {
-    if (numbersAreGrounded(b, user)) return true;
+    if (numbersAreGrounded(forGrounding(b), user)) return true;
     console.warn(`Dropped summary bullet with numbers not in the data: ${b}`);
     return false;
   });
@@ -175,7 +218,10 @@ const NOT_SUBJECTS = new Set([
 export function numbersAreGrounded(bullet: string, input: string): boolean {
   // Normalize unicode hyphens/dashes so "117‑112" splits into 117 and 112.
   const b = stripAccents(bullet).replace(/[‐-―]/g, "-");
-  input = stripAccents(input);
+  // Sources often spell numbers out ("five blocks") where bullets use digits.
+  input = stripAccents(input).replace(NUMBER_WORDS_RE, (w) =>
+    String(NUMBER_WORDS.indexOf(w.toLowerCase())),
+  );
   const bLower = b.toLowerCase();
   const nums = b.match(/\d+(?:\.\d+)?/g) ?? [];
   if (nums.length === 0) return true;
@@ -195,5 +241,10 @@ export function numbersAreGrounded(bullet: string, input: string): boolean {
   );
 }
 
+const NUMBER_WORDS =
+  "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty".split(
+    " ",
+  );
+const NUMBER_WORDS_RE = new RegExp(`\\b(?:${NUMBER_WORDS.join("|")})\\b`, "gi");
 const stripAccents = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "");
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
