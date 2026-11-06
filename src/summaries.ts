@@ -3,7 +3,7 @@
  * data we already fetched, and every bullet is checked: if it contains a number
  * that isn't in the input, it's dropped (the model got a stat wrong).
  */
-import { formatDateKey } from "./dates.ts";
+import { formatDateKey } from "./util/dates.ts";
 import { complete } from "./llm/groq.ts";
 import type { Game } from "./sources/espn.ts";
 import type { GameRecap } from "./sources/espnRecap.ts";

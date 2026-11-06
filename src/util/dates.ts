@@ -1,4 +1,4 @@
-import { TIMEZONE } from "./config.ts";
+import { TIMEZONE } from "../config.ts";
 
 /** YYYY-MM-DD for the given instant, in US/Eastern. */
 export function etDateKey(d: Date): string {

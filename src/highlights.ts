@@ -1,6 +1,6 @@
 import type { Game } from "./sources/espn.ts";
 import type { Video } from "./sources/youtube.ts";
-import { formatDateKey } from "./dates.ts";
+import { formatDateKey } from "./util/dates.ts";
 
 export type HighlightLink = { kind: "video"; video: Video } | { kind: "search"; url: string };
 

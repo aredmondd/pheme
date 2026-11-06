@@ -1,5 +1,5 @@
 import type { Recap } from "./collect.ts";
-import { etDateKey, formatDateKey } from "./dates.ts";
+import { etDateKey, formatDateKey } from "./util/dates.ts";
 
 /**
  * Push a "your recap is ready" notification via ntfy. Tapping it opens SITE_URL.

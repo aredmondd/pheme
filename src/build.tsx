@@ -16,13 +16,13 @@ import { join } from "node:path";
 import { renderToString } from "preact-render-to-string";
 import { collect, type Recap } from "./collect.ts";
 import { DATA_DIR, FIRST_RUN_LOOKBACK_HOURS, OUT_DIR } from "./config.ts";
-import { etDateKey } from "./dates.ts";
+import { etDateKey } from "./util/dates.ts";
 import { dayLinks } from "./components/DayPicker.tsx";
 import { Page } from "./components/Page.tsx";
 import { FIXTURES, fixtureRecap, type FixtureName } from "./fixtures.ts";
 import { sendNotification } from "./notify.ts";
 import { readLastRunAt, writeLastRunAt } from "./state.ts";
-import { logTotal, timed } from "./timing.ts";
+import { logTotal, timed } from "./util/timing.ts";
 
 const fixture = process.argv.find((a) => a.startsWith("--fixture="))?.slice("--fixture=".length);
 if (fixture && !(FIXTURES as readonly string[]).includes(fixture)) {

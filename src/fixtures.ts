@@ -6,7 +6,7 @@
  */
 import type { Recap } from "./collect.ts";
 import { CHANNELS } from "./config.ts";
-import { previousEtDateKey } from "./dates.ts";
+import { previousEtDateKey } from "./util/dates.ts";
 
 export const FIXTURES = ["empty", "errors"] as const;
 export type FixtureName = (typeof FIXTURES)[number];

@@ -1,5 +1,5 @@
 import type { Video } from "../sources/youtube.ts";
-import { formatTimeEt } from "../dates.ts";
+import { formatTimeEt } from "../util/dates.ts";
 
 export function VideoCard({ video }: { video: Video }) {
   return (

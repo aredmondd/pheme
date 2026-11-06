@@ -1,4 +1,4 @@
-import { formatDateKey } from "../dates.ts";
+import { formatDateKey } from "../util/dates.ts";
 
 /** One entry in /days.json — also what the picker renders at build time. */
 export type DayLink = { key: string; href: string; label: string };

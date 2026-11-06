@@ -9,7 +9,7 @@ import {
   NBA_HIGHLIGHTS_PLAYLIST_ID,
   type Channel,
 } from "./config.ts";
-import { etDateKey, previousEtDateKey } from "./dates.ts";
+import { etDateKey, previousEtDateKey } from "./util/dates.ts";
 import { fetchFantasy, type Fantasy } from "./sources/espnFantasy.ts";
 import { findHighlight, type HighlightLink } from "./highlights.ts";
 import { fetchScoreboard, type Game } from "./sources/espn.ts";
@@ -17,7 +17,7 @@ import { fetchGameRecap, type GameRecap } from "./sources/espnRecap.ts";
 import { fetchStandings, type Standings } from "./sources/espnStandings.ts";
 import { fantasyPrompt, nbaPrompt, summarizeFantasy, summarizeNba } from "./summaries.ts";
 import { fetchLongFormUploads, fetchPlaylistVideos, type Video } from "./sources/youtube.ts";
-import { timed } from "./timing.ts";
+import { timed } from "./util/timing.ts";
 
 /** A page section that either loaded or failed — failures render as a warning, not a crash. */
 export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
