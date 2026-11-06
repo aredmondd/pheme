@@ -22,6 +22,7 @@ import { Page } from "./components/Page.tsx";
 import { FIXTURES, fixtureRecap, type FixtureName } from "./fixtures.ts";
 import { sendNotification } from "./notify.ts";
 import { readLastRunAt, writeLastRunAt } from "./state.ts";
+import { logTotal, timed } from "./timing.ts";
 
 const fixture = process.argv.find((a) => a.startsWith("--fixture="))?.slice("--fixture=".length);
 if (fixture && !(FIXTURES as readonly string[]).includes(fixture)) {
@@ -38,35 +39,41 @@ if (fixture) {
   console.log(`Using fixture "${fixture}" (no API calls)`);
   recap = fixtureRecap(fixture as FixtureName, now);
 } else if (cached) {
-  recap = await loadLatestRecap();
+  recap = await timed("load cached recap", loadLatestRecap);
 } else {
   const windowStart =
     (await readLastRunAt()) ?? new Date(now.getTime() - FIRST_RUN_LOOKBACK_HOURS * 3_600_000);
   console.log(`Collecting videos since ${windowStart.toISOString()}…`);
-  recap = await collect(now, windowStart);
+  recap = await timed("collect", () => collect(now, windowStart));
 }
 
 const todayKey = cached ? etDateKey(recap.generatedAt) : etDateKey(now);
 const days = dayLinks([...(await listDayKeys()), todayKey]);
-const html = "<!doctype html>" + renderToString(<Page recap={recap} days={days} />);
-
-await mkdir(join(OUT_DIR, todayKey), { recursive: true });
-// Static assets (self-hosted fonts, icons…) are served from the site root: public/fonts/x.woff2 → /fonts/x.woff2
-await cp("public", OUT_DIR, { recursive: true, filter: (src) => !src.endsWith(".gitkeep") }).catch(
-  (err) => {
-    if (err.code !== "ENOENT") throw err;
-  },
+const html = await timed(
+  "render",
+  () => "<!doctype html>" + renderToString(<Page recap={recap} days={days} />),
 );
-await writeFile(join(OUT_DIR, "index.html"), html);
-await writeFile(join(OUT_DIR, todayKey, "index.html"), html);
-// Older pages read this on load so their day picker can reach days built after them.
-await writeFile(join(OUT_DIR, "days.json"), JSON.stringify(days));
 
-// Keep the raw data per day — useful later for the AI overview / debugging / --cached dev builds.
-if (!cached) {
-  await mkdir(join(DATA_DIR, "days"), { recursive: true });
-  await writeFile(join(DATA_DIR, "days", `${todayKey}.json`), JSON.stringify(recap, null, 2));
-}
+await timed("write out/", async () => {
+  await mkdir(join(OUT_DIR, todayKey), { recursive: true });
+  // Static assets (self-hosted fonts, icons…) are served from the site root: public/fonts/x.woff2 → /fonts/x.woff2
+  await cp("public", OUT_DIR, {
+    recursive: true,
+    filter: (src) => !src.endsWith(".gitkeep"),
+  }).catch((err) => {
+    if (err.code !== "ENOENT") throw err;
+  });
+  await writeFile(join(OUT_DIR, "index.html"), html);
+  await writeFile(join(OUT_DIR, todayKey, "index.html"), html);
+  // Older pages read this on load so their day picker can reach days built after them.
+  await writeFile(join(OUT_DIR, "days.json"), JSON.stringify(days));
+
+  // Keep the raw data per day — useful later for the AI overview / debugging / --cached dev builds.
+  if (!cached) {
+    await mkdir(join(DATA_DIR, "days"), { recursive: true });
+    await writeFile(join(DATA_DIR, "days", `${todayKey}.json`), JSON.stringify(recap, null, 2));
+  }
+});
 
 const videosOk = recap.channels.every((c) => c.videos.ok);
 if (saveState) {
@@ -86,10 +93,12 @@ console.log(
 
 if (notify) {
   // A failed push shouldn't fail the run — the page is already written.
-  await sendNotification(recap).catch((err) =>
+  await timed("ntfy push", () => sendNotification(recap)).catch((err) =>
     console.error(`Notification failed: ${err.message}`),
   );
 }
+
+logTotal("build total");
 
 /** Newest saved recap from data/days, with ISO date strings revived into Dates. */
 async function loadLatestRecap(): Promise<Recap> {

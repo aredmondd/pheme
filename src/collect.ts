@@ -24,6 +24,7 @@ import {
   summarizeNews,
 } from "./summaries.ts";
 import { fetchLongFormUploads, fetchPlaylistVideos, type Video } from "./sources/youtube.ts";
+import { timed } from "./timing.ts";
 
 /** A page section that either loaded or failed — failures render as a warning, not a crash. */
 export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -51,12 +52,12 @@ export type Recap = {
   };
 };
 
-async function section<T>(fn: () => Promise<T>): Promise<Section<T>> {
+async function section<T>(label: string, fn: () => Promise<T>): Promise<Section<T>> {
   try {
-    return { ok: true, data: await fn() };
+    return { ok: true, data: await timed(label, fn) };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    console.error(`[section failed] ${error}`);
+    console.error(`[section failed] ${label}: ${error}`);
     return { ok: false, error };
   }
 }
@@ -67,7 +68,7 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
   const channelsP = Promise.all(
     CHANNELS.map(async (channel) => ({
       channel,
-      videos: await section(async () =>
+      videos: await section(`videos: ${channel.name}`, async () =>
         (await fetchLongFormUploads(channel.channelId))
           .filter((v) => v.published > windowStart && v.published <= now)
           .sort((a, b) => b.published.getTime() - a.published.getTime()),
@@ -75,19 +76,21 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     })),
   );
 
-  const gamesP = section(async () => {
-    const games = await fetchScoreboard(gamesDateKey.replaceAll("-", ""));
+  const gamesP = section("games (total)", async () => {
+    const games = await timed("games: ESPN scoreboard", () =>
+      fetchScoreboard(gamesDateKey.replaceAll("-", "")),
+    );
     // Highlight sources are best-effort: a failure here just means search links.
     const candidates = (
       await Promise.allSettled([
-        fetchPlaylistVideos(NBA_HIGHLIGHTS_PLAYLIST_ID),
-        fetchLongFormUploads(NBA_CHANNEL_ID),
+        timed("games: highlights playlist", () => fetchPlaylistVideos(NBA_HIGHLIGHTS_PLAYLIST_ID)),
+        timed("games: NBA channel uploads", () => fetchLongFormUploads(NBA_CHANNEL_ID)),
       ])
     ).flatMap((r) => (r.status === "fulfilled" ? r.value : []));
     return games.map((g) => ({ ...g, highlight: findHighlight(g, gamesDateKey, candidates) }));
   });
 
-  const fantasyP = section(async () => {
+  const fantasyP = section("fantasy: ESPN", async () => {
     const fantasy = await fetchFantasy({
       leagueId: ESPN_LEAGUE_ID,
       myTeamName: MY_FANTASY_TEAM,
@@ -96,38 +99,45 @@ export async function collect(now: Date, windowStart: Date): Promise<Recap> {
     return { ...fantasy, injuryChanges: await injuryChanges(fantasy, etDateKey(now)) };
   });
 
-  const standingsP = section(fetchStandings);
+  const standingsP = section("standings: ESPN", fetchStandings);
 
-  const [channels, games, fantasy, standings] = await Promise.all([
-    channelsP,
-    gamesP,
-    fantasyP,
-    standingsP,
-  ]);
+  const [channels, games, fantasy, standings] = await timed("fetch phase (parallel)", () =>
+    Promise.all([channelsP, gamesP, fantasyP, standingsP]),
+  );
 
   const finished = games.ok ? games.data.filter((g) => g.completed) : [];
   const newsVideos = channels
     .filter((c) => c.channel.news && c.videos.ok)
     .flatMap((c) => (c.videos.ok ? c.videos.data : []));
-  const [nbaBriefing, fantasyBriefing, newsBriefing] = await Promise.all([
-    finished.length
-      ? section(async () => {
-          // Box scores are best-effort: a missing one just means fewer details for that game.
-          const boxes = new Map<string, Map<string, PlayerLine[]>>();
-          await Promise.all(
-            finished.map((g) =>
-              fetchBoxTopScorers(g.id).then(
-                (b) => boxes.set(g.id, b),
-                (err) => console.warn(`Box score ${g.id}: ${err.message}`),
+  const [nbaBriefing, fantasyBriefing, newsBriefing] = await timed("summary phase (parallel)", () =>
+    Promise.all([
+      finished.length
+        ? section("briefing: NBA (total)", async () => {
+            // Box scores are best-effort: a missing one just means fewer details for that game.
+            const boxes = new Map<string, Map<string, PlayerLine[]>>();
+            await timed(`briefing: ${finished.length} box scores`, () =>
+              Promise.all(
+                finished.map((g) =>
+                  fetchBoxTopScorers(g.id).then(
+                    (b) => boxes.set(g.id, b),
+                    (err) => console.warn(`Box score ${g.id}: ${err.message}`),
+                  ),
+                ),
               ),
-            ),
-          );
-          return summarizeNba(nbaPrompt(gamesDateKey, finished, boxes));
-        })
-      : null,
-    fantasy.ok ? section(() => summarizeFantasy(fantasyPrompt(fantasy.data))) : null,
-    newsVideos.length ? section(() => summarizeNews(newsPrompt(newsVideos))) : null,
-  ]);
+            );
+            return timed("briefing: NBA Groq", () =>
+              summarizeNba(nbaPrompt(gamesDateKey, finished, boxes)),
+            );
+          })
+        : null,
+      fantasy.ok
+        ? section("briefing: fantasy Groq", () => summarizeFantasy(fantasyPrompt(fantasy.data)))
+        : null,
+      newsVideos.length
+        ? section("briefing: news Groq", () => summarizeNews(newsPrompt(newsVideos)))
+        : null,
+    ]),
+  );
 
   return {
     generatedAt: now,

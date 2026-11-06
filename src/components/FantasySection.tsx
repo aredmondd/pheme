@@ -172,7 +172,7 @@ function PlayerRow({ p }: { p: RosterPlayer }) {
         ) : p.hadGame ? (
           "DNP"
         ) : (
-          <span class="text-xs font-normal text-green">No game</span>
+          <span class="text-xs text-black">DNP</span>
         )}
       </span>
     </div>
